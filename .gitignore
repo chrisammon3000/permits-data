@@ -95,3 +95,4 @@ target/
 /references
 /reports
 tox.ini
+base-requirements.txt
