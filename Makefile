@@ -20,6 +20,11 @@ endif
 # COMMANDS                                                                      #
 #################################################################################
 
+## Start Postgres
+start_db:
+	scripts/run_postgres.sh
+
+
 ## Install Python Dependencies
 requirements: test_environment
 	$(PYTHON_INTERPRETER) -m pip install -U pip setuptools wheel
