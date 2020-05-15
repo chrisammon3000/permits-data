@@ -4,6 +4,7 @@
 
 FROM postgres:11
 
+# Avoid conflicts with SQL statements in init files
 ENV POSTGRES_USER postgres
 ENV POSTGRES_PASSWORD password
 ENV POSTGRES_DB permits
