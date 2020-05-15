@@ -89,6 +89,7 @@ target/
 .mypy_cache/
 
 # Project files
+/scripts
 /docs
 /data
 /models
