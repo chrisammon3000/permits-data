@@ -97,3 +97,4 @@ target/
 /reports
 tox.ini
 base-requirements.txt
+/postgres/pgdata
