@@ -24,6 +24,8 @@ endif
 start_db:
 	scripts/run_postgres.sh
 
+load_db:
+	scripts/load_db.sh
 
 ## Install Python Dependencies
 requirements: test_environment

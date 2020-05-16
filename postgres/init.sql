@@ -29,7 +29,7 @@ CREATE TABLE permits_raw (
     "Unit Range End" TEXT,
     "Zip Code" INT,
     "Work Description" TEXT,
-    "Valuation" INT,
+    "Valuation" NUMERIC,
     "Floor Area-L.A. Zoning Code Definition" TEXT,
     "# of Residential Dwelling Units" TEXT,
     "# of Accessory Dwelling Units" TEXT,
