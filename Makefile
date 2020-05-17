@@ -22,6 +22,7 @@ endif
 
 ## Start Postgres
 start_db:
+	set -o allexport; source .env; set +o allexport;
 	@echo "### Starting Docker... ###"
 	@scripts/run_postgres.sh
 
