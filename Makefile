@@ -22,10 +22,12 @@ endif
 
 ## Start Postgres
 start_db:
-	scripts/run_postgres.sh
+	@echo "### Starting Docker... ###"
+	@scripts/run_postgres.sh
 
 load_db:
-	scripts/load_db.sh
+	@echo "### Loading PostgreSQL Database... ###"
+	@scripts/load_db.sh
 
 ## Install Python Dependencies
 requirements: test_environment

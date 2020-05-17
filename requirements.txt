@@ -1,7 +1,8 @@
 appnope==0.1.0
 backcall==0.1.0
 bleach @ file:///home/conda/feedstock_root/build_artifacts/bleach_1588608214987/work
-certifi==2018.8.24
+certifi==2016.9.26
+click==7.1.2
 decorator==4.4.2
 defusedxml==0.6.0
 entrypoints==0.2.3
@@ -35,6 +36,7 @@ ptyprocess==0.6.0
 Pygments==2.6.1
 pyparsing==2.4.7
 python-dateutil==2.8.1
+python-dotenv==0.13.0
 pytz==2020.1
 pyzmq==17.1.2
 Send2Trash==1.5.0

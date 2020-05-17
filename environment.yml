@@ -9,8 +9,9 @@ dependencies:
   - blas=1.1=openblas
   - bleach=3.1.5=pyh9f0ad1d_0
   - bzip2=1.0.8=h0b31af3_2
-  - ca-certificates=2020.1.1=0
-  - certifi=2018.8.24=py35_1
+  - ca-certificates=2020.4.5.1=hecc5488_0
+  - certifi=2016.9.26=py35_0
+  - click=7.1.2=pyh9f0ad1d_0
   - decorator=4.4.2=py_0
   - defusedxml=0.6.0=py_0
   - entrypoints=0.2.3=py35_2
@@ -38,7 +39,7 @@ dependencies:
   - notebook=5.7.0=py35_0
   - numpy=1.14.6=py35_blas_openblashd3ea46f_200
   - openblas=0.2.20=8
-  - openssl=1.0.2u=h1de35cc_0
+  - openssl=1.0.2u=h0b31af3_0
   - packaging=20.1=py_0
   - pandas=0.22.0=py35h0a44026_0
   - pandoc=2.9.2.1=0
@@ -55,6 +56,7 @@ dependencies:
   - pyparsing=2.4.7=pyh9f0ad1d_0
   - python=3.5.5=h5001a0f_2
   - python-dateutil=2.8.1=py_0
+  - python-dotenv=0.13.0=pyh9f0ad1d_0
   - pytz=2020.1=py_0
   - pyzmq=17.1.2=py35hae99301_0
   - readline=7.0=hcfe32e1_1001
