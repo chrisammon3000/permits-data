@@ -58,6 +58,7 @@ clear_docker: clear_db
 
 ## Removes deletes db and cleans up project files, keeps downloaded data
 tear_down: clear_docker clean
+	## Add warning, deletes all data, proceed?
 
 ## Install Python Dependencies
 requirements: test_environment

@@ -24,7 +24,8 @@ POSTGRES_PASSWORD = os.getenv("POSTGRES_PASSWORD")
 POSTGRES_DB = os.getenv("POSTGRES_DB")
 DB_PORT = os.getenv("DB_PORT")
 DB_HOST = os.getenv("DB_HOST")
-DATA_URL = os.getenv("DB_DATA_URLPORT")
+DATA_URL = os.getenv("DATA_URL")
+DATA_DIR = os.getenv("DATA_DIR")
 
 # User gives file paths
 @click.command()
@@ -64,6 +65,22 @@ old_columns = get_table_names("permits_raw")
 
 # Rename columns, will update table later
 def format_names(series):
+    """
+    str.replace using use dict map on string (not series) and 
+    apply to series with .apply()
+    ---------
+    
+    def replace_chars(text):
+        for oldchar, newchar in replace_map.items():
+            text.replace(oldchar, newchar)
+        return text
+    
+    return series.apply(text)
+        
+    
+
+    """
+
     # Replace whitespace with underscore
     series = series.str.replace(' ', '_')
 
