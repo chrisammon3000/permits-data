@@ -24,7 +24,7 @@ endif
 start_db:
 	@echo "### Starting Docker... ###"
 	@scripts/run_postgres.sh
-	@echo "### Ready ###"
+	@echo "### Waiting for PostgreSQL... ###"
 
 load_db:
 	@echo "### Loading PostgreSQL Database... ###"

@@ -14,6 +14,7 @@ then
 else
     echo "Starting container:"
     docker start $CONTAINER
+    echo "### Container Ready. ###"
 fi
 
 #docker logs -f $CONTAINER
