@@ -20,10 +20,6 @@ endif
 # COMMANDS                                                                      #
 #################################################################################
 
-## Export environment variables
-export_env:
-	[[ ! -f .env ]] || export $$(cat .env | sed 's/#.*//g' | xargs)
-
 ## Start Postgres
 start_db:
 	@echo "### Starting Docker... ###"
@@ -32,6 +28,23 @@ start_db:
 load_db:
 	@echo "### Loading PostgreSQL Database... ###"
 	@scripts/load_db.sh
+
+stop_db:
+	@echo "### Stopping PostgreSQL Database... ###"
+	@echo "Container stopped: $(CONTAINER)"
+	@docker stop $(CONTAINER) ||:
+
+clear_db: stop_db
+	@echo "### Deleting PostgreSQL Database... ###"	
+	@echo "Enter password to clear database:"
+	sudo rm -rf ./postgres/pgdata/
+
+clear_docker: clear_db
+	@echo "### Removing Container... ###"
+	@echo "Container removed: $(CONTAINER)"
+	@docker rm -f $(CONTAINER) ||:
+
+tear_down: clear_docker clean
 
 ## Install Python Dependencies
 requirements: test_environment
@@ -44,8 +57,9 @@ data: requirements
 
 ## Delete all compiled Python files
 clean:
-	find . -type f -name "*.py[co]" -delete
-	find . -type d -name "__pycache__" -delete
+	@echo "### Cleaning up... ###"
+	@find . -type f -name "*.py[co]" -delete
+	@find . -type d -name "__pycache__" -delete
 
 ## Lint using flake8
 lint:
