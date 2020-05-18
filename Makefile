@@ -45,6 +45,8 @@ clear_db: stop_db
 	@sudo rm -rf ./postgres/pgdata/
 	@echo "Done."
 
+	#bash scripts/stop_db.sh
+
 clear_docker: clear_db
 	@echo "### Removing Container... ###"
 	@echo "Container removed: $(CONTAINER)"

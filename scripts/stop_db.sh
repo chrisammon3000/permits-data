@@ -6,8 +6,9 @@ case "$$response" in
         echo "### Deleting PostgreSQL Database... ###"
         echo 'Removing files in ./postgres/pgdata/ ...'
         #@echo "Enter password to continue:"
-        sudo rm -rf ./postgres/pgdata/
+        sudo rm -rf "$PWD/postgres/pgdata/*"
         echo "Done."
+        break
     ;;
     *) 
         echo "Aborting..."
