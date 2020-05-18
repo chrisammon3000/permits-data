@@ -32,12 +32,14 @@ load_db: start_db
 	@scripts/load_db.sh
 	@echo "Done."
 
+## Stops database
 stop_db:
 	@echo "### Stopping PostgreSQL Database... ###"
 	@echo "Container stopped:"
 	@docker stop $(CONTAINER) ||:
 	@echo "Done."
 
+## Delete ./postgres/pgdata folder and contents
 clear_db: stop_db
 	@echo "### Deleting PostgreSQL Database... ###"
 	@echo 'Removing files in ./postgres/pgdata/ ...'
@@ -47,12 +49,14 @@ clear_db: stop_db
 
 	#bash scripts/stop_db.sh
 
+## Remove db container
 clear_docker: clear_db
 	@echo "### Removing Container... ###"
 	@echo "Container removed: $(CONTAINER)"
 	@docker rm $(CONTAINER)
 	@echo "Done."
 
+## Removes deletes db and cleans up project files, keeps downloaded data
 tear_down: clear_docker clean
 
 ## Install Python Dependencies

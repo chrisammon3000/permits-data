@@ -1,5 +1,6 @@
 #!/bin/bash
 
+# Trying to add confirmation
 read -p 'Delete current database? [y/n]: ' response
 case "$$response" in 
     [yY][eE][sS]|[yY])
