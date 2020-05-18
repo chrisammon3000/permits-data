@@ -24,6 +24,7 @@ endif
 start_db:
 	@echo "### Starting Docker... ###"
 	@scripts/run_postgres.sh
+	@echo "### Ready ###"
 
 load_db:
 	@echo "### Loading PostgreSQL Database... ###"
@@ -31,18 +32,19 @@ load_db:
 
 stop_db:
 	@echo "### Stopping PostgreSQL Database... ###"
-	@echo "Container stopped: $(CONTAINER)"
+	@echo "Container stopped:"
 	@docker stop $(CONTAINER) ||:
 
 clear_db: stop_db
 	@echo "### Deleting PostgreSQL Database... ###"
-	@echo "Enter password to clear database:"
-	sudo rm -rf ./postgres/pgdata/
+	@echo 'Removing files in ./postgres/pgdata/ ...'
+	@echo "Enter password to continue:"
+	@sudo rm -rf ./postgres/pgdata/
 
 clear_docker: clear_db
 	@echo "### Removing Container... ###"
 	@echo "Container removed: $(CONTAINER)"
-	@docker rm -f $(CONTAINER) ||:
+	@docker rm $(CONTAINER)
 
 tear_down: clear_docker clean
 
