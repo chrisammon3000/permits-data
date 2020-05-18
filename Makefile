@@ -35,7 +35,7 @@ stop_db:
 	@docker stop $(CONTAINER) ||:
 
 clear_db: stop_db
-	@echo "### Deleting PostgreSQL Database... ###"	
+	@echo "### Deleting PostgreSQL Database... ###"
 	@echo "Enter password to clear database:"
 	sudo rm -rf ./postgres/pgdata/
 
