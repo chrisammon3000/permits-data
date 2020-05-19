@@ -12,108 +12,32 @@ import psycopg2
 
 #############################
 
-# Load environment variables from .env
-load_dotenv(find_dotenv());
-
-# Set path for modules
-sys.path[0] = '../'
-
-# Set environment variables
-POSTGRES_USER = os.getenv("POSTGRES_USER")
-POSTGRES_PASSWORD = os.getenv("POSTGRES_PASSWORD")
-POSTGRES_DB = os.getenv("POSTGRES_DB")
-DB_PORT = os.getenv("DB_PORT")
-DB_HOST = os.getenv("DB_HOST")
-DATA_URL = os.getenv("DATA_URL")
-DATA_DIR = os.getenv("DATA_DIR")
-
-# User gives file paths
-@click.command()
-@click.argument('input_filepath', type=click.Path(exists=True))
-@click.argument('output_filepath', type=click.Path())
-def main(input_filepath, output_filepath):
-    """ Runs data processing scripts to turn raw data from (../raw) into
-        cleaned data ready to be analyzed (saved in ../processed).
-    """
-    logger = logging.getLogger(__name__)
-    logger.info('making final data set from raw data')
-
-# Read in data
-raw_data = 'permits_raw.csv'
-DATA_PATH = sys.path[0] + 'data/raw/' + raw_data
-
-# Connect to db
-conn = psycopg2.connect(dbname=POSTGRES_DB,
-                       user=POSTGRES_USER,
-                       password=POSTGRES_PASSWORD,
-                        host=DB_HOST, 
-                        port=DB_PORT)
-
-# Extract full dataset
-#data = pd.read_sql_query(sql, conn)
-
 # Get raw data column names
 def get_table_names(table):
     sql = "SELECT * FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = N'{}'".format(table)
     etl = pd.read_sql_query(sql, conn)
-    old_columns = etl['column_name']
+    columns = etl['column_name']
     
-    return old_columns
-
-# Retrieve table column names
-old_columns = get_table_names("permits_raw")
+    return columns
 
 # Rename columns, will update table later
 def format_names(series):
-    """
-    str.replace using use dict map on string (not series) and 
-    apply to series with .apply()
-    ---------
     
+    replace_map = {' ': '_', '-': '_', '#': 'No', '/': '_', 
+                   '.': '', '(': '', ')': '', "'": ''}
+
     def replace_chars(text):
         for oldchar, newchar in replace_map.items():
-            text.replace(oldchar, newchar)
+            text = text.replace(oldchar, newchar).lower()
         return text
-    
-    return series.apply(text)
-        
-    
 
-    """
-
-    # Replace whitespace with underscore
-    series = series.str.replace(' ', '_')
-
-    # Replace hyphen with underscore
-    series = series.str.replace('-', '_')
-
-    # Replace hashtag with No (short for number)
-    series = series.str.replace('#', 'No')
-
-    # Replace forward slash with underscore
-    series = series.str.replace('/', '_')
-
-    # Remove period
-    series = series.str.replace('.', '')
-
-    # Remove open parenthesis
-    series = series.str.replace('(', '')
-
-    # Remove closed parenthesis
-    series = series.str.replace(')', '')
-
-    # Remove apostrophe
-    series = series.str.replace("'", '')
-    
-    return series.str.lower()
-
-# Transform table column names for permits_raw
-new_columns = format_names(old_columns);
+    return series.apply(replace_chars)
 
 # Creates a SQL query to update table columns and writes to text file
-def create_query(old_columns, new_columns, run=False):
+### pass conn context
+def create_query(old_columns, new_columns, db_table, run=False, con=conn):
     
-    sql = 'ALTER TABLE permits_raw RENAME "{old_name}" to {new_name};'
+    sql = 'ALTER TABLE {} '.format(db_table) + 'RENAME "{old_name}" to {new_name};'
     
     sql_query = []
 
@@ -126,17 +50,12 @@ def create_query(old_columns, new_columns, run=False):
     with open('../postgres/sql/update_names.sql', 'w') as text:
         text.write(update_names)
         
-    if run==True:
+    if run:
         cur = conn.cursor()
         sql_file = open('../postgres/sql/update_names.sql', 'r')
         cur.execute(sql_file.read())
-
-# Create SQL query for permits_raw
-create_query(old_columns, new_columns, run=True)
-
-# Extract full dataset
-data = pd.read_sql_query(sql_all, conn)
-data.head()
+        conn.commit()
+        #conn.close()
 
 #############################
 
@@ -150,5 +69,31 @@ if __name__ == '__main__':
     # find .env automagically by walking up directories until it's found, then
     # load up the .env entries as environment variables
     load_dotenv(find_dotenv())
+
+    # Set environment variables
+    POSTGRES_USER = os.getenv("POSTGRES_USER")
+    POSTGRES_PASSWORD = os.getenv("POSTGRES_PASSWORD")
+    POSTGRES_DB = os.getenv("POSTGRES_DB")
+    DB_PORT = os.getenv("DB_PORT")
+    DB_HOST = os.getenv("DB_HOST")
+    DATA_URL = os.getenv("DATA_URL")
+
+    # Environment variables specific to notebook
+    DATA_DIR = os.path.dirname(root_dir) + '/data'
+    DB_TABLE = "permits_raw"
+
+    # Retrieve table column names
+    old_columns = get_table_names("permits_raw")
+
+    # Transform table column names for permits_raw
+    new_columns = format_names(old_columns)
+
+    # Create SQL query for permits_raw
+    try:
+        create_query(old_columns, new_columns, run=True, con=conn, db_table=DB_TABLE)
+    except: 
+        conn.rollback()
+        print("Query unsuccessful, try again.")
+
 
     main()
