@@ -10,8 +10,6 @@ import numpy as np
 import pandas as pd
 import psycopg2
 
-#############################
-
 # Get raw data column names
 def get_table_names(table):
     sql = "SELECT * FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = N'{}'".format(table)
@@ -54,10 +52,23 @@ def create_query(old_columns, new_columns, db_table, run=False, con=conn):
         cur = conn.cursor()
         sql_file = open('../postgres/sql/update_names.sql', 'r')
         cur.execute(sql_file.read())
-        conn.commit()
+        #conn.commit()
         #conn.close()
 
-#############################
+def rename_columns(table):
+    # Retrieve table column names
+    old_columns = get_table_names(table)
+
+    # Transform table column names for permits_raw
+    new_columns = format_names(old_columns)
+
+    # Create SQL query for permits_raw
+    try:
+        create_query(old_columns, new_columns, run=True, con=conn, db_table=DB_TABLE)
+    except: 
+        conn.rollback()
+        print("Query unsuccessful, try again.")
+
 
 if __name__ == '__main__':
     log_fmt = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
@@ -82,18 +93,4 @@ if __name__ == '__main__':
     DATA_DIR = os.path.dirname(root_dir) + '/data'
     DB_TABLE = "permits_raw"
 
-    # Retrieve table column names
-    old_columns = get_table_names("permits_raw")
-
-    # Transform table column names for permits_raw
-    new_columns = format_names(old_columns)
-
-    # Create SQL query for permits_raw
-    try:
-        create_query(old_columns, new_columns, run=True, con=conn, db_table=DB_TABLE)
-    except: 
-        conn.rollback()
-        print("Query unsuccessful, try again.")
-
-
-    main()
+    rename_columns(DB_TABLE)

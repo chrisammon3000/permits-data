@@ -1,6 +1,7 @@
 #!/bin/bash
 TABLE=permits_raw
 DATA='./data/raw/permits_raw.csv'
+CONTAINER=postgres_db
 
 # Copy 1 million rows into db; For smaller dataset replace cat with head -n #rows
 head -n 10001 $DATA | docker exec -i $CONTAINER psql -h $DB_HOST \
