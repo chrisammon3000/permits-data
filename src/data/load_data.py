@@ -10,8 +10,8 @@ import pandas as pd
 import psycopg2
 
 # Get raw data column names
-def get_table_names(table, con):
-    sql = "SELECT * FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = N'{}'".format(table)
+def get_table_names(db_table, con):
+    sql = "SELECT * FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = N'{}'".format(db_table)
     etl = pd.read_sql_query(sql, con)
     columns = etl['column_name']
     
@@ -49,33 +49,33 @@ def create_query(old_columns, new_columns, db_table, con, run=False):
     
     # Update db if desired
     if run:
-        cur = conn.cursor()
+        cur = con.cursor()
         sql_file = open(project_dir + '/postgres/sql/update_names.sql', 'r')
         cur.execute(sql_file.read())
-        #conn.commit()
-        #conn.close()
+        con.commit()
 
-def rename_columns(table, con):
+def rename_columns(db_table, con):
     # Retrieve table column names
-    old_columns = get_table_names(table, con)
+    old_columns = get_table_names(db_table, con)
 
     # Transform table column names for permits_raw
     new_columns = format_names(old_columns)
 
-    # Create SQL query for permits_raw
-    # try:
-    #     create_query(old_columns=old_columns, new_columns=new_columns, run=True, 
+    #Create SQL query for permits_raw
+    try:
+        create_query(old_columns=old_columns, new_columns=new_columns, run=True, 
+                    con=con, db_table=db_table)
+        print("Table updated.")
+    except Exception as e: 
+        con.rollback()
+        print("Query unsuccessful, try again.")
+        print('Error: ', e)
+
+    # create_query(old_columns=old_columns, new_columns=new_columns, run=True, 
     #                 con=conn, db_table=DB_TABLE)
-    #     print("Table updated.")
-    # except: 
-    #     conn.rollback()
-    #     print("Query unsuccessful, try again.")
+    # print("Table updated.")
 
-    create_query(old_columns=old_columns, new_columns=new_columns, run=True, 
-                    con=conn, db_table=DB_TABLE)
-    print("Table updated.")
-
-    return get_table_names(table, con)
+    return get_table_names(db_table, con)
 
 
 if __name__ == '__main__':
@@ -83,10 +83,9 @@ if __name__ == '__main__':
     logging.basicConfig(level=logging.INFO, format=log_fmt)
 
     # not used in this stub but often useful for finding various files
-    # only works in Python 3.6.1
+    # only works in Python 3.6.1 and above
     # Get project root directory
     project_dir = str(Path(__file__).resolve().parents[2])
-    print('Project directory: ', project_dir)
 
     # find .env automagically by walking up directories until it's found, then
     # load up the .env entries as environment variables
@@ -102,10 +101,17 @@ if __name__ == '__main__':
 
     DB_TABLE = "permits_raw"
 
-    conn = psycopg2.connect(dbname=POSTGRES_DB, user=POSTGRES_USER, password=POSTGRES_PASSWORD, 
-                        host=DB_HOST, port=DB_PORT)
+    print('Connecting...')
+    try: 
+        conn = psycopg2.connect(dbname=POSTGRES_DB, user=POSTGRES_USER, password=POSTGRES_PASSWORD, 
+                            host=DB_HOST, port=DB_PORT)
+    except Exception as e:
+        print('Unable to connect.')
+        print('Error: ', e)
 
     update = rename_columns(DB_TABLE, conn)
-    print(update)
+
+    conn.close()
+    print('Connection closed.')
     # sql_file = project_dir + "/postgres/sql/update_names.sql"
     # print(sql_file)
