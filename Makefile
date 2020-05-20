@@ -26,6 +26,7 @@ start_db:
 	@scripts/run_postgres.sh
 	@echo "### Waiting for PostgreSQL... ###"
 	@scripts/test_connection.sh
+	@echo "Done."
 
 ## Load data
 load_db: start_db
@@ -34,9 +35,10 @@ load_db: start_db
 	@echo "Done."
 
 ## Process raw data
-data: load_data
+data: load_db
 	@echo "### Processing Data... ###"
 	@$(PYTHON_INTERPRETER) src/data/load_data.py
+	@echo "Success."
 	
 ## Stops database
 stop_db:
@@ -64,7 +66,8 @@ clear_docker: clear_db
 
 ## Removes deletes db and cleans up project files, keeps downloaded data
 tear_down: clear_docker clean
-	## Add warning, deletes all data, proceed?
+	# Add warning, deletes all data #
+	@echo "Done."
 
 ## Install Python Dependencies
 requirements: test_environment
