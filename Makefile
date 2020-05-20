@@ -30,6 +30,7 @@ start_db:
 load_db: start_db
 	@echo "### Loading PostgreSQL Database... ###"
 	@scripts/load_db.sh
+	@python src/data/load_data.py
 	@echo "Done."
 
 ## Stops database
