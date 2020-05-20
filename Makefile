@@ -27,12 +27,17 @@ start_db:
 	@echo "### Waiting for PostgreSQL... ###"
 	@scripts/test_connection.sh
 
+## Load data
 load_db: start_db
 	@echo "### Loading PostgreSQL Database... ###"
 	@scripts/load_db.sh
-	@python src/data/load_data.py
 	@echo "Done."
 
+## Process raw data
+data: load_data
+	@echo "### Processing Data... ###"
+	@python src/data/load_data.py
+	
 ## Stops database
 stop_db:
 	@echo "### Stopping PostgreSQL Database... ###"
