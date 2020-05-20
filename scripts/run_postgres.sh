@@ -8,7 +8,7 @@ export CONTAINER=postgres_db
 if [[ $(docker ps -a -f "name=$CONTAINER" --format '{{.Names}}') != "$CONTAINER" ]]
 then
     echo "Building new container..."
-    docker build -t $REPO:$CONTAINER ./postgres \
+    docker build -q -t $REPO:$CONTAINER ./postgres \
     && docker run --name $CONTAINER -d -p $DB_PORT:$DB_PORT \
     -v "$PWD/postgres/pgdata":/var/lib/postgresql/data $REPO:$CONTAINER
 else
