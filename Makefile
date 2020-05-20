@@ -36,7 +36,7 @@ load_db: start_db
 ## Process raw data
 data: load_data
 	@echo "### Processing Data... ###"
-	@python src/data/load_data.py
+	@$(PYTHON_INTERPRETER) src/data/load_data.py
 	
 ## Stops database
 stop_db:
@@ -72,8 +72,8 @@ requirements: test_environment
 	$(PYTHON_INTERPRETER) -m pip install -r requirements.txt
 
 ## Make Dataset
-data: requirements
-	$(PYTHON_INTERPRETER) src/data/make_dataset.py data/raw data/processed
+# data: requirements
+# 	$(PYTHON_INTERPRETER) src/data/make_dataset.py data/raw data/processed
 
 ## Delete all compiled Python files
 clean:
