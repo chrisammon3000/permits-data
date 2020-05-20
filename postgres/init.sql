@@ -27,7 +27,7 @@ CREATE TABLE permits_raw (
     "Suffix Direction" TEXT,
     "Unit Range Start" TEXT,
     "Unit Range End" TEXT,
-    "Zip Code" INT,
+    "Zip Code" TEXT,
     "Work Description" TEXT,
     "Valuation" NUMERIC,
     "Floor Area-L.A. Zoning Code Definition" TEXT,
@@ -57,6 +57,6 @@ CREATE TABLE permits_raw (
     "Council District" TEXT,
     "Latitude/Longitude" TEXT,
     "Applicant Relationship" TEXT,
-    "Existing Code" INT,
-    "Proposed Code" INT
+    "Existing Code" TEXT,
+    "Proposed Code" TEXT
 );
