@@ -60,3 +60,4 @@ CREATE TABLE permits_raw (
     "Existing Code" TEXT,
     "Proposed Code" TEXT
 );
+SET statement_timeout = '2s';
