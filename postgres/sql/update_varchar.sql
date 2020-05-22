@@ -33,8 +33,10 @@ ALTER TABLE public.permits_raw
 	ALTER street_direction TYPE CHAR(1),
 	ALTER applicant_address_3 TYPE VARCHAR(50),
 	ALTER contractor_city TYPE VARCHAR(50),
+	ALTER tract TYPE VARCHAR(200),
 	ALTER contractor_address TYPE VARCHAR(100),
 	ALTER contractor_state TYPE CHAR(2),
 	ALTER principal_middle_name TYPE VARCHAR(50),
 	ALTER block TYPE VARCHAR(50),
+	ALTER assessor_parcel TYPE CHAR(3),
 	ALTER unit_range_start TYPE VARCHAR(50);
