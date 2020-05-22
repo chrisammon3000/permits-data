@@ -109,6 +109,7 @@ if __name__ == '__main__':
         print('Unable to connect.')
         print('Error: ', e)
 
+    print('Updating column names...')
     update = rename_columns(DB_TABLE, conn)
 
     conn.close()
