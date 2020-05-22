@@ -113,5 +113,3 @@ if __name__ == '__main__':
 
     conn.close()
     print('Connection closed.')
-    # sql_file = project_dir + "/postgres/sql/update_names.sql"
-    # print(sql_file)
