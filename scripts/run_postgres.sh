@@ -2,7 +2,7 @@
 export CONTAINER=postgres_db
 
 # check if data directory is present
-[[ -d "./postgres/data" ]] || mkdir -p ./postgres/pgdata
+[[ -d "./postgres/pgdata" ]] || mkdir -p ./postgres/pgdata
 
 # Check if container exists
 if [[ $(docker ps -a -f "name=$CONTAINER" --format '{{.Names}}') != "$CONTAINER" ]]
