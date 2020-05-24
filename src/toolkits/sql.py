@@ -5,8 +5,33 @@ import numpy as np
 import pandas as pd
 import psycopg2
 
+# Set environment variables
+load_dotenv(find_dotenv());
+POSTGRES_USER = os.getenv("POSTGRES_USER")
+POSTGRES_PASSWORD = os.getenv("POSTGRES_PASSWORD")
+POSTGRES_DB = os.getenv("POSTGRES_DB")
+DB_PORT = os.getenv("DB_PORT")
+DB_HOST = os.getenv("DB_HOST")
+DATA_URL = os.getenv("DATA_URL")
+
 # Connect to PostgreSQL, useful only for notebook
 def connect_db():
+    
+    """
+    Connects to PostgreSQL database using psycopg2 driver. Same
+    arguments as psycopg2.connect().
+
+    Params
+    --------
+    dbname
+    user
+    password
+    host
+    port
+    connect_timeout
+
+    """
+    
     try:
         con = psycopg2.connect(dbname=POSTGRES_DB,
                                user=POSTGRES_USER,
@@ -22,7 +47,7 @@ def connect_db():
     
     return con
 
-# # Get raw data column names
+## Get raw data column names
 def get_table_names(table, con):
     sql = "SELECT * FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = N'{}'".format(table)
     etl = pd.read_sql_query(sql, con)

@@ -15,6 +15,8 @@ dependencies:
   - decorator=4.4.2=py_0
   - defusedxml=0.6.0=py_0
   - entrypoints=0.2.3=py35_2
+  - future=0.16.0=py35_2
+  - geocoder=1.38.1=py_1
   - ipykernel=5.1.0=pyh24bf2e0_0
   - ipython=7.0.1=py35h24bf2e0_0
   - ipython_genutils=0.2.0=py_1
@@ -59,7 +61,9 @@ dependencies:
   - python-dotenv=0.13.0=pyh9f0ad1d_0
   - pytz=2020.1=py_0
   - pyzmq=17.1.2=py35hae99301_0
+  - ratelim=0.1.6=py_2
   - readline=7.0=hcfe32e1_1001
+  - requests=2.12.5=py35_0
   - send2trash=1.5.0=py_0
   - setuptools=40.4.3=py35_0
   - simplegeneric=0.8.1=py_1

@@ -6,6 +6,8 @@ click==7.1.2
 decorator==4.4.2
 defusedxml==0.6.0
 entrypoints==0.2.3
+future==0.16.0
+geocoder==1.38.1
 ipykernel==5.1.0
 ipython==7.0.1
 ipython-genutils==0.2.0
@@ -39,6 +41,8 @@ python-dateutil==2.8.1
 python-dotenv==0.13.0
 pytz==2020.1
 pyzmq==17.1.2
+ratelim==0.1.6
+requests==2.12.5
 Send2Trash==1.5.0
 simplegeneric==0.8.1
 six==1.14.0
