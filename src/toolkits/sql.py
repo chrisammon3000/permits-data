@@ -31,7 +31,7 @@ def connect_db():
     connect_timeout
 
     """
-    
+
     try:
         con = psycopg2.connect(dbname=POSTGRES_DB,
                                user=POSTGRES_USER,
@@ -39,7 +39,7 @@ def connect_db():
                                 host=DB_HOST, 
                                 port=DB_PORT,
                               connect_timeout=3)
-        print('Connected as user "{}" to database "{}" on {}:{}\n'.format(POSTGRES_USER,POSTGRES_DB,
+        print('Connected as user "{}" to database "{}" on http://{}:{}.\n'.format(POSTGRES_USER,POSTGRES_DB,
                                                            DB_HOST,DB_PORT))
               
     except Exception as e:
