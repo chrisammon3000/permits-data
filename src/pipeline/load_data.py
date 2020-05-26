@@ -32,29 +32,41 @@ def format_names(series):
 
 # Creates a SQL query to update table columns and writes to text file
 ### pass conn context
-def create_query(old_columns, new_columns, db_table, con, run=False):
+# Creates a SQL query to update table columns and writes to text file
+### add path string
+def create_query(old_columns, new_columns, db_table, con, path, run=False):
     
     sql = 'ALTER TABLE {} '.format(db_table) + 'RENAME "{old_name}" to {new_name};'
+    
     
     sql_query = []
 
     for idx, name in old_columns.iteritems():
-        #print(idx, name)
         sql_query.append(sql.format(old_name=name, new_name=new_columns[idx]))
         
     update_names = '\n'.join(sql_query)
-    # update later: sql_file = os.path.join(os.path.dirname(__file__), "../postgres/scripts/update_names.sql")
-    with open(project_dir + '/postgres/sql/update_names.sql', 'w') as text:
-        text.write(update_names)
     
-    # Update db if desired
+    # replace with path
+    with open(path, 'w') as text:
+        text.write(update_names)
+        
+    # Update db is desired
     if run:
-        cur = con.cursor()
-        sql_file = open(project_dir + '/postgres/sql/update_names.sql', 'r')
-        cur.execute(sql_file.read())
-        con.commit()
+        try:
+            cur = con.cursor()
+            print("Reading...")
+            sql_file = open(path, 'r')
+            print("Executing...")
+            cur.execute(sql_file.read())
+            con.commit()
+            print("Closing connection...")
+            #conn.close()
+            print("Done.")
+        except Exception as e:
+            conn.rollback()
+            print("Error: ", e)
 
-def rename_columns(db_table, con):
+def rename_columns(db_table, path, con):
     # Retrieve table column names
     old_columns = get_table_names(db_table, con)
 
@@ -64,12 +76,12 @@ def rename_columns(db_table, con):
     #Create SQL query for permits_raw
     try:
         create_query(old_columns=old_columns, new_columns=new_columns, run=True, 
-                    con=con, db_table=db_table)
+                    con=con, db_table=db_table, path=path)
         print("Table updated.")
     except Exception as e: 
         con.rollback()
         print("Query unsuccessful, try again.")
-        print('Error: ', e)
+        print('Error:/n', e)
 
     # create_query(old_columns=old_columns, new_columns=new_columns, run=True, 
     #                 con=conn, db_table=DB_TABLE)
@@ -101,6 +113,8 @@ if __name__ == '__main__':
 
     DB_TABLE = "permits_raw"
 
+    sql_path = project_dir + '/postgres/sql/update_names.sql'
+
     print('Connecting...')
     try: 
         conn = psycopg2.connect(dbname=POSTGRES_DB, user=POSTGRES_USER, password=POSTGRES_PASSWORD, 
@@ -110,7 +124,7 @@ if __name__ == '__main__':
         print('Error: ', e)
 
     print('Updating column names...')
-    update = rename_columns(DB_TABLE, conn)
+    update = rename_columns(db_table=DB_TABLE, path=sql_path, con=conn)
 
     conn.close()
     print('Connection closed.')
