@@ -1,6 +1,6 @@
 #!/bin/bash
 TABLE=permits_tmp
-DATA='./data/interim/permits_update.csv'
+DATA='./data/interim/permits_geocoded.csv'
 CONTAINER=postgres_db
 export NROWS=$(cat $DATA | wc -l)
 
