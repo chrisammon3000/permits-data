@@ -20,10 +20,26 @@ endif
 # COMMANDS                                                                      #
 #################################################################################
 
+## Delete Conda environment
+delete_env:
+	@source $(CONDAROOT)/bin/activate
+	@conda env remove --name permits-data-env
+
+## Create Conda environment
+create_env: delete_env
+	@echo "###Create environment###"
+	@source $(CONDAROOT)/bin/activate \
+	&& conda env create -f environment.yml \
+	&& conda deactivate
+
 ## Check environment variables
 check_env:
 	@if [ -z "$$CONTAINER" ]; then echo "\nError:\nMissing environment variables. To set them first run:" \
 		&& echo "set -o allexport; source .env; set +o allexport;\n" && exit 1; fi
+
+## Fetch data
+##fetch: check_env
+	##@scripts/fetch_data.sh
 
 ## Start Postgres
 start_db: check_env
@@ -42,7 +58,7 @@ load_db: start_db
 	@echo "Database is loaded."
 
 ## Clean data
-##clean_data: load_db
+##transform_data: load_db
 
 ## Load cleaned data
 ##update_db: clean_data
@@ -50,7 +66,7 @@ load_db: start_db
 ## Process raw data
 data: load_db ##update_db
 	@echo "### Cleaning Data... ###"
-	@$(PYTHON_INTERPRETER) src/pipeline/clean_data.py
+	@$(PYTHON_INTERPRETER) src/pipeline/transform_data.py
 	@echo "Finished."
 	
 ## Stops database

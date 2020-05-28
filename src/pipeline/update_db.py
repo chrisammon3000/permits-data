@@ -10,7 +10,7 @@ import numpy as np
 import pandas as pd
 pd.options.mode.chained_assignment = None  # default='warn'; turn off SettingWithCopyWarning
 import psycopg2
-from src.toolkits.sql import connect_db, get_table_names, format_names, update_table_names # Import custom sql functions
+from src.toolkits.sql import connect_db # Import custom sql functions
 
 
 

@@ -12,6 +12,7 @@ pd.options.mode.chained_assignment = None  # default='warn'; turn off SettingWit
 import psycopg2
 from src.toolkits.sql import connect_db, get_table_names, format_names, update_table_names # Import custom sql functions
 
+# Rename columns after bash script has loaded raw data
 def rename_columns(db_table, path, con):
     # Retrieve table column names
     old_columns = get_table_names(db_table, con)
