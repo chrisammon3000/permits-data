@@ -12,58 +12,6 @@ pd.options.mode.chained_assignment = None  # default='warn'; turn off SettingWit
 import psycopg2
 from src.toolkits.sql import connect_db, get_table_names, format_names, update_table_names # Import custom sql functions
 
-# # Get raw data column names
-# def get_table_names(db_table, con):
-#     sql = "SELECT * FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = N'{}'".format(db_table)
-#     etl = pd.read_sql_query(sql, con)
-#     columns = etl['column_name']
-    
-#     return columns
-
-# # Rename columns, will update table later
-# def format_names(series):
-    
-#     replace_map = {' ': '_', '-': '_', '#': 'No', '/': '_', 
-#                    '.': '', '(': '', ')': '', "'": ''}
-
-#     def replace_chars(text):
-#         for oldchar, newchar in replace_map.items():
-#             text = text.replace(oldchar, newchar).lower()
-#         return text
-
-#     return series.apply(replace_chars)
-
-# # Creates a SQL query to update table columns and writes to text file
-# def update_table_names(old_columns, new_columns, db_table, con, path, run=False):
-    
-#     sql = 'ALTER TABLE {} '.format(db_table) + 'RENAME "{old_name}" to {new_name};'
-    
-#     sql_query = []
-
-#     for idx, name in old_columns.iteritems():
-#         sql_query.append(sql.format(old_name=name, new_name=new_columns[idx]))
-        
-#     update_names = '\n'.join(sql_query)
-    
-#     # replace with path
-#     with open(path, 'w') as text:
-#         text.write(update_names)
-        
-#     # Update db is desired
-#     if run:
-#         try:
-#             cur = con.cursor()
-#             print("Reading...")
-#             sql_file = open(path, 'r')
-#             print('Executing update query on table "{}"...'.format(db_table))
-#             cur.execute(sql_file.read())
-#             con.commit()
-#             cur.close()
-#             print("Table is updated.")
-#         except Exception as e:
-#             conn.rollback()
-#             print("Error: ", e)
-
 def rename_columns(db_table, path, con):
     # Retrieve table column names
     old_columns = get_table_names(db_table, con)
@@ -112,13 +60,7 @@ if __name__ == '__main__':
 
     sql_path = project_dir + '/postgres/sql/update_names.sql'
 
-    print('Connecting...')
-    try: 
-        conn = psycopg2.connect(dbname=POSTGRES_DB, user=POSTGRES_USER, password=POSTGRES_PASSWORD, 
-                            host=DB_HOST, port=DB_PORT)
-    except Exception as e:
-        print('Unable to connect.')
-        print('Error: ', e)
+    conn = connect_db()
 
     print('Updating column names...')
     rename_columns(db_table=DB_TABLE, path=sql_path, con=conn)
