@@ -31,13 +31,9 @@ def format_names(series):
     return series.apply(replace_chars)
 
 # Creates a SQL query to update table columns and writes to text file
-### pass conn context
-# Creates a SQL query to update table columns and writes to text file
-### add path string
-def create_query(old_columns, new_columns, db_table, con, path, run=False):
+def update_table_names(old_columns, new_columns, db_table, con, path, run=False):
     
     sql = 'ALTER TABLE {} '.format(db_table) + 'RENAME "{old_name}" to {new_name};'
-    
     
     sql_query = []
 
@@ -75,7 +71,7 @@ def rename_columns(db_table, path, con):
 
     #Create SQL query for permits_raw
     try:
-        create_query(old_columns=old_columns, new_columns=new_columns, run=True, 
+        update_table_names(old_columns=old_columns, new_columns=new_columns, run=True, 
                     con=con, db_table=db_table, path=path)
         print("Table updated.")
     except Exception as e: 
@@ -83,7 +79,7 @@ def rename_columns(db_table, path, con):
         print("Query unsuccessful, try again.")
         print('Error:/n', e)
 
-    # create_query(old_columns=old_columns, new_columns=new_columns, run=True, 
+    # update_table_names(old_columns=old_columns, new_columns=new_columns, run=True, 
     #                 con=conn, db_table=DB_TABLE)
     # print("Table updated.")
 

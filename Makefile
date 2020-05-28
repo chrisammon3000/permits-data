@@ -38,6 +38,7 @@ load_db: start_db
 data: load_db
 	@echo "### Processing Data... ###"
 	@$(PYTHON_INTERPRETER) src/pipeline/load_data.py
+	#@$(PYTHON_INTERPRETER) src/pipeline/clean_data.py
 	@echo "Success."
 	
 ## Stops database
