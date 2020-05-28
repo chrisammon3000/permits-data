@@ -84,7 +84,7 @@ clean:
 	@echo "### Cleaning up... ###"
 	@find . -type f -name "*.py[co]" -delete
 	@find . -type d -name "__pycache__" -delete
-	@echo "Cache files deleted.
+	@echo "Cache files deleted."
 
 ## Lint using flake8
 lint:

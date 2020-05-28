@@ -4,6 +4,9 @@
 
 FROM postgres:11
 
+# Create data folder
+RUN /bin/sh -c 'mkdir -p /var/local/data'
+
 # Avoid conflicts with SQL statements in init files
 ENV POSTGRES_USER postgres
 ENV POSTGRES_PASSWORD password

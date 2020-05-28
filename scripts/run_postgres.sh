@@ -10,7 +10,8 @@ then
     echo "Building new container..."
     docker build -q -t $REPO:$CONTAINER ./postgres \
     && docker run --name $CONTAINER -d -p $DB_PORT:$DB_PORT \
-    -v "$PWD/postgres/pgdata":/var/lib/postgresql/data $REPO:$CONTAINER
+    -v "$PWD/postgres/pgdata":/var/lib/postgresql/data \
+    -v "$PWD/data":/var/local/data $REPO:$CONTAINER
 else
     echo "Starting container:"
     docker start $CONTAINER
