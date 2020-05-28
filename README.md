@@ -1,10 +1,10 @@
 permits-data
 ==============================
 
-Analysis of construction permits in Los Angeles, USA.
+ETL pipeline for construction permit data in Los Angeles county, USA.
 
 ## Pipeline Overview
-The pipeline initializes a PostgreSQL database instance running inside a Docker container and loads raw construction permits data from a csv file and prepare it for ETL, analysis and modeling. Everything can be run with a single command `make data`. The steps are broken down as follows:
+The pipeline initializes a PostgreSQL database instance running inside a Docker container and loads raw construction permit data from a csv file in order to prepare it for analysis and modeling. Everything can be run with a single command `make data`. The steps are broken down as follows:
 
 1) Fetch data: `make fetch`
 2) Start container: `make start_db`

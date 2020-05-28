@@ -85,5 +85,5 @@ dependencies:
   - zeromq=4.3.2=h6de7cb9_2
   - zipp=3.1.0=py_0
   - zlib=1.2.11=h0b31af3_1006
-prefix: $HOME/anaconda3/envs/permits-data-env
+prefix: /Users/gregory/anaconda3/envs/permits-data-env
 

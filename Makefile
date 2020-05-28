@@ -34,6 +34,9 @@ create_env: delete_env
 
 ## Check environment variables
 check_env:
+	@if [[ "$$CONDA_DEFAULT_ENV" != "permits-data-env" ]]; then \
+		echo "\nError:\nEnvironment not active. To activate run:" \
+		&& echo "conda activate permits-data-env" && exit 1; fi
 	@if [ -z "$$CONTAINER" ]; then echo "\nError:\nMissing environment variables. To set them first run:" \
 		&& echo "set -o allexport; source .env; set +o allexport;\n" && exit 1; fi
 
