@@ -1,7 +1,9 @@
 import os
 import sys
+
 # Set path for modules
 sys.path[0] = '../'
+
 from dotenv import load_dotenv, find_dotenv
 import numpy as np
 import pandas as pd
@@ -100,6 +102,38 @@ def geocode_latitude_longitude(data):
     # Update dataframe
     return data.update(data_missing)
 
+def split_column_lat_long(data):
+    
+    # Check that there are no more missing coordinates before proceeding
+    assert data['latitude_longitude'].notnull().any(), "Missing coordinates must be geocoded."
+
+    # Split latitude_longitude into separate columns and convert to float values: latitude, longitude
+    if ['latitude', 'longitude'] not in data.columns.tolist():
+        lat_long_series = data['latitude_longitude'].astype(str).str[1:-1].str.split(',', expand=True) \
+                            .astype(float).rename(columns={0: "latitude", 1: "longitude"})
+
+        # Add to original data
+        return pd.concat([data, lat_long_series], axis=1)
+
+# Checks columns are correct and saves to csv
+def save_csv(data, path):
+
+    # Check unique columns
+    assert data.columns.tolist() == data.columns.unique().tolist(), "Extra columns detected."
+    
+    # Check for null values
+    assert data['latitude'].any(), 'Column "latitude" has missing values.'
+    assert data['longitude'].any(), 'Column "longitude" has missing values.'
+
+    # Check for erroneous coordinates. All coordinates should fall within Los Angeles county.
+    assert (data['latitude'] > 33.2).all() and (data['latitude'] < 34.9).all(), "Incorrect latitude detected"
+    assert (data['longitude'] > -118.9).all() and (data['longitude'] < -118).all(), "Incorrect longitude detected"
+
+    # Write to csv
+    data.to_csv(path, index=False)
+    
+    return
+
 if __name__ == '__main__':
     log_fmt = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
     logging.basicConfig(level=logging.INFO, format=log_fmt)
@@ -135,8 +169,11 @@ if __name__ == '__main__':
     # Connect to db
     conn = connect_db()
 
-    # Extract partial dataset
+    # SQL query to extract partial dataset
     sql = 'SELECT * FROM {} LIMIT 500;'.format(DB_TABLE)
+
+    # Path to csv
+    save_path = root_dir + '/data/interim/permits_geocoded.csv'
 
     # Fetch data
     data = fetch_data(sql, conn, date_columns)
@@ -146,3 +183,9 @@ if __name__ == '__main__':
 
     # Geocode
     data = geocode_latitude_longitude(data)
+
+    # Split latitude_longitude into separate columns and convert to float values: latitude, longitude
+    data = split_column_lat_long(data)
+
+    # Save to interim folder
+    save_csv(data, save_path)
