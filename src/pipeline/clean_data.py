@@ -1,27 +1,23 @@
 import os
 import sys
-
-# Set path for modules
-sys.path[0] = '../'
-
+from pathlib import Path
+sys.path[0] = str(Path(__file__).resolve().parents[2]) # Set path for modules
+import logging
 from dotenv import load_dotenv, find_dotenv
 import numpy as np
 import pandas as pd
-# SQL libraries
-import psycopg2
-# Import custom eda and sql functions
-from src.toolkits.eda import get_snapshot
-from src.toolkits.sql import connect_db, get_table_names
-# Import dependencies for geocoding
-from geopy.geocoders import Nominatim
+pd.options.mode.chained_assignment = None  # default='warn'; turn off SettingWithCopyWarning
+import psycopg2 # SQL libraries
+from src.toolkits.sql import connect_db # Import custom sql functions
+from geopy.geocoders import Nominatim # Import dependencies for geocoding
 from geopy.geocoders import GoogleV3
 from geopy.extra.rate_limiter import RateLimiter
 
 # Fetch data from postgres
-def fetch_data(sql, con, date_columns):
+def fetch_data(sql, con):
     
     # Fetch fresh data
-    data = pd.read_sql_query(sql, conn, parse_dates=date_columns, coerce_float=False)
+    data = pd.read_sql_query(sql, con, coerce_float=False)
 
     # Replace None with np.nan
     data.fillna(np.nan, inplace=True)
@@ -90,17 +86,19 @@ def geocode_latitude_longitude(data):
     if len(data_missing) > 0:
         try:
             print("Geocoding...")
-            data_missing['latitude_longitude'] = data_missing['full_address'].apply(geocoder, args=(GOOGLE_API_KEY,
+            data_missing.loc[:, 'latitude_longitude'] = data_missing['full_address'].apply(geocoder, args=(GOOGLE_API_KEY,
                                                                                                     GOOGLE_AGENT))
             print("{} locations were assigned coordinates.".format(num_missing))
-        except Exceptions as e:
+        except Exception as e:
             print("Error:\n", e)
     else:
         print("No missing coordinates.")
         return data
 
     # Update dataframe
-    return data.update(data_missing)
+    data.update(data_missing)
+
+    return data
 
 def split_column_lat_long(data):
     
@@ -134,6 +132,40 @@ def save_csv(data, path):
     
     return
 
+def main():
+    # Connect to db
+    conn = connect_db()
+
+    # SQL query to extract partial dataset
+    sql = 'SELECT * FROM {} LIMIT 500;'.format(DB_TABLE)
+
+    # Path to csv
+    save_path = project_dir + '/data/interim/permits_geocoded.csv'
+
+    # Fetch data
+    data = fetch_data(sql, conn)
+    #print(data.head())
+
+    # Concatenate and create full_address
+    data = create_column_full_address(data)
+    #print(data['full_address'])
+
+    # Geocode
+    data = geocode_latitude_longitude(data)
+
+    # Split latitude_longitude into separate columns and convert to float values: latitude, longitude
+    data = split_column_lat_long(data)
+    print("\nNew columns created:\n\n", data[['latitude_longitude', 'latitude', 'longitude', 'full_address']].head(), "\n")
+
+    # Save to interim folder
+    print("Saving to interim folder...")
+    save_csv(data, save_path)
+
+    conn.close()
+    print("Connection closed.")
+
+    return
+
 if __name__ == '__main__':
     log_fmt = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
     logging.basicConfig(level=logging.INFO, format=log_fmt)
@@ -141,16 +173,10 @@ if __name__ == '__main__':
     # not used in this stub but often useful for finding various files
     # only works in Python 3.6.1 and above
     # Get project root directory
-    project_dir = str(Path(__file__).resolve().parents[2])
+    project_dir = sys.path[0]
 
     # find .env automagically by walking up directories until it's found, then
     # load up the .env entries as environment variables
-    load_dotenv(find_dotenv())
-    
-    # Get project root directory
-    root_dir = os.path.dirname(os.getcwd())
-
-    # Set environment variables
     load_dotenv(find_dotenv());
     POSTGRES_USER = os.getenv("POSTGRES_USER")
     POSTGRES_PASSWORD = os.getenv("POSTGRES_PASSWORD")
@@ -161,31 +187,11 @@ if __name__ == '__main__':
 
     # Google Maps environment variables
     GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
+    GOOGLE_AGENT = "permits-data"
+    
 
     # Environment variables specific to notebook
-    DATA_DIR = os.path.dirname(root_dir) + '/data'
+    DATA_DIR = project_dir + '/data'
     DB_TABLE = "permits_raw"
 
-    # Connect to db
-    conn = connect_db()
-
-    # SQL query to extract partial dataset
-    sql = 'SELECT * FROM {} LIMIT 500;'.format(DB_TABLE)
-
-    # Path to csv
-    save_path = root_dir + '/data/interim/permits_geocoded.csv'
-
-    # Fetch data
-    data = fetch_data(sql, conn, date_columns)
-
-    # Concatenate and create full_address
-    data = create_column_full_address(data)
-
-    # Geocode
-    data = geocode_latitude_longitude(data)
-
-    # Split latitude_longitude into separate columns and convert to float values: latitude, longitude
-    data = split_column_lat_long(data)
-
-    # Save to interim folder
-    save_csv(data, save_path)
+    main()

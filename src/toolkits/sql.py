@@ -39,7 +39,7 @@ def connect_db():
                                 host=DB_HOST, 
                                 port=DB_PORT,
                               connect_timeout=3)
-        print('Connected as user "{}" to database "{}" on http://{}:{}.\n'.format(POSTGRES_USER,POSTGRES_DB,
+        print('Connected as user "{}" to database "{}" on http://{}:{}.'.format(POSTGRES_USER,POSTGRES_DB,
                                                            DB_HOST,DB_PORT))
               
     except Exception as e:
@@ -97,7 +97,7 @@ def create_query(old_columns, new_columns, db_table, con, path, run=False):
             cur.execute(sql_file.read())
             con.commit()
             #print("Closing connection...")
-            #conn.close()
+            cur.close()
             print("Done.")
         except Exception as e:
             conn.rollback()
@@ -193,7 +193,7 @@ def update_table_types(column_dict, sql_string, table, printed=False,
                 cur.execute(sql_file.read())
                 print("Committing changes...")
                 con.commit()
-                con.close()
+                cur.close()
                 print("Database updated successfully.")
             except Exception as e:
                 conn.rollback()
