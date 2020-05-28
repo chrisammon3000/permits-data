@@ -26,7 +26,26 @@ def fetch_data(sql, con, date_columns):
     
     return data
 
+# Concatenate address columns into full_address column
+def create_column_full_address(data):
 
+    # Truncate suffix_direction to first letter (N, S, E, W)
+    data['suffix_direction'] = data['suffix_direction'].str[0].fillna('')
+
+    # Convert zip_code to string
+    data['zip_code'] = data['zip_code'].fillna('').astype(str)
+
+    # Combine address columns to concatenate
+    address_columns = ["address_start", "street_direction", "street_name", "street_suffix", "suffix_direction",
+                      "zip_code"]
+
+    # Concatenate address values
+    data['full_address'] = data[address_columns].fillna('').astype(str).apply(' '.join, axis=1).str.replace('  ', ' ')
+
+    # Replace empty strings with NaN values
+    data[address_columns] = data[address_columns].replace('', np.nan)
+    
+    return data
 
 
 
@@ -73,3 +92,6 @@ if __name__ == '__main__':
 
     # Fetch data
     data = fetch_data(sql, conn, date_columns)
+
+    # Concatenate and create full_address
+    data = create_column_full_address(data)
