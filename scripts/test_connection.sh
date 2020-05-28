@@ -6,4 +6,4 @@ until pg_isready -q -h $DB_HOST -p $DB_PORT -U $POSTGRES_USER; do
     sleep 2 ; \
 done
 printf "%s\n" " "
-echo "Available at postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@${DB_HOST}:${DB_PORT}"
+echo "Connected at postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@${DB_HOST}:${DB_PORT}"

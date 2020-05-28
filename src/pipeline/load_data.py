@@ -52,12 +52,11 @@ def update_table_names(old_columns, new_columns, db_table, con, path, run=False)
             cur = con.cursor()
             print("Reading...")
             sql_file = open(path, 'r')
-            print("Executing...")
+            print('Executing update query on table "{}"...'.format(db_table))
             cur.execute(sql_file.read())
             con.commit()
-            print("Closing connection...")
-            #conn.close()
-            print("Done.")
+            cur.close()
+            print("Table is updated.")
         except Exception as e:
             conn.rollback()
             print("Error: ", e)
@@ -73,15 +72,10 @@ def rename_columns(db_table, path, con):
     try:
         update_table_names(old_columns=old_columns, new_columns=new_columns, run=True, 
                     con=con, db_table=db_table, path=path)
-        print("Table updated.")
     except Exception as e: 
         con.rollback()
         print("Query unsuccessful, try again.")
         print('Error:/n', e)
-
-    # update_table_names(old_columns=old_columns, new_columns=new_columns, run=True, 
-    #                 con=conn, db_table=DB_TABLE)
-    # print("Table updated.")
 
     return
 

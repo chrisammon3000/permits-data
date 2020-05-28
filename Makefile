@@ -26,27 +26,27 @@ start_db:
 	@scripts/run_postgres.sh
 	@echo "### Waiting for PostgreSQL... ###"
 	@scripts/test_connection.sh
-	@echo "Done."
 
 ## Load data
 load_db: start_db
 	@echo "### Loading PostgreSQL Database... ###"
 	@scripts/load_db.sh
 	@echo "Done."
+	@echo "### Processing Data... ###"
+	@$(PYTHON_INTERPRETER) src/pipeline/load_data.py
+	@echo "Database is loaded."
 
 ## Process raw data
 data: load_db
-	@echo "### Processing Data... ###"
-	@$(PYTHON_INTERPRETER) src/pipeline/load_data.py
-	#@$(PYTHON_INTERPRETER) src/pipeline/clean_data.py
-	@echo "Success."
+	@echo "### Cleaning Data... ###"
+	@$(PYTHON_INTERPRETER) src/pipeline/clean_data.py
+	@echo "Finished."
 	
 ## Stops database
 stop_db:
 	@echo "### Stopping PostgreSQL Database... ###"
 	@echo "Container stopped:"
 	@docker stop $(CONTAINER) ||:
-	@echo "Done."
 
 ## Delete ./postgres/pgdata folder and contents
 clear_db: stop_db
@@ -54,21 +54,21 @@ clear_db: stop_db
 	@echo 'Removing files in ./postgres/pgdata/ ...'
 	@echo "Enter password to continue:"
 	@sudo rm -rf ./postgres/pgdata/
-	@echo "Done."
+	@echo "Database deleted."
 
 	#bash scripts/stop_db.sh
 
 ## Remove db container
 clear_docker: clear_db
 	@echo "### Removing Container... ###"
-	@echo "Container removed: $(CONTAINER)"
+	@echo "Container removed:"
 	@docker rm $(CONTAINER)
 	@echo "Done."
 
 ## Removes deletes db and cleans up project files, keeps downloaded data
 tear_down: clear_docker clean
-	# Add warning, deletes all data #
-	@echo "Done."
+	## Add warning, deletes all data #
+	@echo "Tear down complete."
 
 ## Install Python Dependencies
 requirements: test_environment
@@ -84,7 +84,7 @@ clean:
 	@echo "### Cleaning up... ###"
 	@find . -type f -name "*.py[co]" -delete
 	@find . -type d -name "__pycache__" -delete
-	@echo "Done."
+	@echo "Cache files deleted.
 
 ## Lint using flake8
 lint:
