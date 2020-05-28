@@ -47,7 +47,58 @@ def create_column_full_address(data):
     
     return data
 
+def geocode_latitude_longitude(data):
+    
+    # Extract rows missing in latitude_longitude
+    data_missing = data[data['latitude_longitude'].isnull()==1]
+    
+    # How many rows are missing coordinates
+    num_missing = len(data_missing)
 
+    # Create helper function to geocode missing latitude_longitude values
+    def geocoder(address, key, agent, timeout=5):
+
+        """
+        Uses GoogleMaps API to batch geocode address strings to lat/long coordinates. RateLimiter is to 
+        avoid timeout errors. If an address cannot be geocoded it is left as NaN. Use of GoogleMaps 
+        API incurs a charge at $0.005 per request.
+
+        """
+
+        if address:
+            # Instantiates GoogleMaps geocoder
+            geolocator = GoogleV3(api_key=key, 
+                                  user_agent=agent, 
+                                  timeout=timeout)
+
+            # Adds Rate Limiter to space out requests
+            geocode = RateLimiter(geolocator.geocode, min_delay_seconds=1)
+            location = geolocator.geocode(address)
+            latitude, longitude = location.latitude, location.longitude
+
+            return latitude, longitude
+        else:
+            return np.nan
+        
+    # Calculate cost
+    cost = num_missing * 0.005
+    print("Cost for geocoding {} addresses is ${:.2f}.".format(num_missing, cost))
+
+    # Geocode missing coordinates using full addresses
+    if len(data_missing) > 0:
+        try:
+            print("Geocoding...")
+            data_missing['latitude_longitude'] = data_missing['full_address'].apply(geocoder, args=(GOOGLE_API_KEY,
+                                                                                                    GOOGLE_AGENT))
+            print("{} locations were assigned coordinates.".format(num_missing))
+        except Exceptions as e:
+            print("Error:\n", e)
+    else:
+        print("No missing coordinates.")
+        return data
+
+    # Update dataframe
+    return data.update(data_missing)
 
 if __name__ == '__main__':
     log_fmt = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
@@ -87,11 +138,11 @@ if __name__ == '__main__':
     # Extract partial dataset
     sql = 'SELECT * FROM {} LIMIT 500;'.format(DB_TABLE)
 
-    # Columns to parse as dates
-    date_columns = ['status_date', 'issue_date', 'license_expiration_date']
-
     # Fetch data
     data = fetch_data(sql, conn, date_columns)
 
     # Concatenate and create full_address
     data = create_column_full_address(data)
+
+    # Geocode
+    data = geocode_latitude_longitude(data)
