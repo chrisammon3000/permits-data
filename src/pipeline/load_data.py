@@ -83,7 +83,7 @@ def rename_columns(db_table, path, con):
     #                 con=conn, db_table=DB_TABLE)
     # print("Table updated.")
 
-    return get_table_names(db_table, con)
+    return
 
 
 if __name__ == '__main__':
@@ -120,7 +120,7 @@ if __name__ == '__main__':
         print('Error: ', e)
 
     print('Updating column names...')
-    update = rename_columns(db_table=DB_TABLE, path=sql_path, con=conn)
+    rename_columns(db_table=DB_TABLE, path=sql_path, con=conn)
 
     conn.close()
     print('Connection closed.')
