@@ -22,6 +22,8 @@ endif
 
 ## Start Postgres
 start_db:
+	@if [ -z "$$CONTAINER" ]; then echo "\nMissing environment variables. To set them first run:" \
+		&& echo "set -o allexport; source .env; set +o allexport;\n" && exit 1; fi
 	@echo "### Starting Docker... ###"
 	@scripts/run_postgres.sh
 	@echo "### Waiting for PostgreSQL... ###"
