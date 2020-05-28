@@ -1,72 +1,79 @@
 # -*- coding: utf-8 -*-
 import os
 import sys
+from pathlib import Path
+sys.path[0] = str(Path(__file__).resolve().parents[2]) # Set path for modules
 import click
 import logging
-from pathlib import Path
 from dotenv import find_dotenv, load_dotenv
 import numpy as np
 import pandas as pd
+pd.options.mode.chained_assignment = None  # default='warn'; turn off SettingWithCopyWarning
 import psycopg2
+from src.toolkits.sql import connect_db, get_table_names, format_names, update_table_names # Import custom sql functions
 
-# Get raw data column names
-def get_table_names(db_table, con):
-    sql = "SELECT * FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = N'{}'".format(db_table)
-    etl = pd.read_sql_query(sql, con)
-    columns = etl['column_name']
+# # Get raw data column names
+# def get_table_names(db_table, con):
+#     sql = "SELECT * FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = N'{}'".format(db_table)
+#     etl = pd.read_sql_query(sql, con)
+#     columns = etl['column_name']
     
-    return columns
+#     return columns
 
-# Rename columns, will update table later
-def format_names(series):
+# # Rename columns, will update table later
+# def format_names(series):
     
-    replace_map = {' ': '_', '-': '_', '#': 'No', '/': '_', 
-                   '.': '', '(': '', ')': '', "'": ''}
+#     replace_map = {' ': '_', '-': '_', '#': 'No', '/': '_', 
+#                    '.': '', '(': '', ')': '', "'": ''}
 
-    def replace_chars(text):
-        for oldchar, newchar in replace_map.items():
-            text = text.replace(oldchar, newchar).lower()
-        return text
+#     def replace_chars(text):
+#         for oldchar, newchar in replace_map.items():
+#             text = text.replace(oldchar, newchar).lower()
+#         return text
 
-    return series.apply(replace_chars)
+#     return series.apply(replace_chars)
 
-# Creates a SQL query to update table columns and writes to text file
-def update_table_names(old_columns, new_columns, db_table, con, path, run=False):
+# # Creates a SQL query to update table columns and writes to text file
+# def update_table_names(old_columns, new_columns, db_table, con, path, run=False):
     
-    sql = 'ALTER TABLE {} '.format(db_table) + 'RENAME "{old_name}" to {new_name};'
+#     sql = 'ALTER TABLE {} '.format(db_table) + 'RENAME "{old_name}" to {new_name};'
     
-    sql_query = []
+#     sql_query = []
 
-    for idx, name in old_columns.iteritems():
-        sql_query.append(sql.format(old_name=name, new_name=new_columns[idx]))
+#     for idx, name in old_columns.iteritems():
+#         sql_query.append(sql.format(old_name=name, new_name=new_columns[idx]))
         
-    update_names = '\n'.join(sql_query)
+#     update_names = '\n'.join(sql_query)
     
-    # replace with path
-    with open(path, 'w') as text:
-        text.write(update_names)
+#     # replace with path
+#     with open(path, 'w') as text:
+#         text.write(update_names)
         
-    # Update db is desired
-    if run:
-        try:
-            cur = con.cursor()
-            print("Reading...")
-            sql_file = open(path, 'r')
-            print('Executing update query on table "{}"...'.format(db_table))
-            cur.execute(sql_file.read())
-            con.commit()
-            cur.close()
-            print("Table is updated.")
-        except Exception as e:
-            conn.rollback()
-            print("Error: ", e)
+#     # Update db is desired
+#     if run:
+#         try:
+#             cur = con.cursor()
+#             print("Reading...")
+#             sql_file = open(path, 'r')
+#             print('Executing update query on table "{}"...'.format(db_table))
+#             cur.execute(sql_file.read())
+#             con.commit()
+#             cur.close()
+#             print("Table is updated.")
+#         except Exception as e:
+#             conn.rollback()
+#             print("Error: ", e)
 
 def rename_columns(db_table, path, con):
     # Retrieve table column names
     old_columns = get_table_names(db_table, con)
 
+    # Replace map
+    replace_map = {' ': '_', '-': '_', '#': 'No', '/': '_', 
+               '.': '', '(': '', ')': '', "'": ''}
+
     # Transform table column names for permits_raw
-    new_columns = format_names(old_columns)
+    new_columns = format_names(old_columns, char_map=replace_map)
 
     #Create SQL query for permits_raw
     try:
@@ -75,7 +82,7 @@ def rename_columns(db_table, path, con):
     except Exception as e: 
         con.rollback()
         print("Query unsuccessful, try again.")
-        print('Error:/n', e)
+        print('Error:\n', e)
 
     return
 

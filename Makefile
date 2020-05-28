@@ -22,7 +22,7 @@ endif
 
 ## Check environment variables
 check_env:
-	@if [ -z "$$CONTAINER" ]; then echo "\nMissing environment variables. To set them first run:" \
+	@if [ -z "$$CONTAINER" ]; then echo "\nError:\nMissing environment variables. To set them first run:" \
 		&& echo "set -o allexport; source .env; set +o allexport;\n" && exit 1; fi
 
 ## Start Postgres
@@ -41,8 +41,14 @@ load_db: start_db
 	@$(PYTHON_INTERPRETER) src/pipeline/load_data.py
 	@echo "Database is loaded."
 
+## Clean data
+##clean_data: load_db
+
+## Load cleaned data
+##update_db: clean_data
+
 ## Process raw data
-data: load_db
+data: load_db ##update_db
 	@echo "### Cleaning Data... ###"
 	@$(PYTHON_INTERPRETER) src/pipeline/clean_data.py
 	@echo "Finished."

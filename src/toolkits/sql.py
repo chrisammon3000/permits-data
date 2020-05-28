@@ -70,11 +70,9 @@ def format_names(series, char_map):
     return series.apply(replace_chars)
 
 # Creates a SQL query to update table columns and writes to text file
-### add path string
-def create_query(old_columns, new_columns, db_table, con, path, run=False):
+def update_table_names(old_columns, new_columns, db_table, con, path, run=False):
     
     sql = 'ALTER TABLE {} '.format(db_table) + 'RENAME "{old_name}" to {new_name};'
-    
     
     sql_query = []
 
@@ -93,12 +91,11 @@ def create_query(old_columns, new_columns, db_table, con, path, run=False):
             cur = con.cursor()
             print("Reading...")
             sql_file = open(path, 'r')
-            print("Executing...")
+            print('Executing update query on table "{}"...'.format(db_table))
             cur.execute(sql_file.read())
             con.commit()
-            #print("Closing connection...")
             cur.close()
-            print("Done.")
+            print("Table is updated.")
         except Exception as e:
             conn.rollback()
             print('Error:\n', e)
