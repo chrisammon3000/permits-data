@@ -89,7 +89,7 @@ def compare_column_order(data, db_table, con, match_inplace=False):
         data_columns = data.columns.tolist()
     
     if set(db_columns) == set(data_columns):
-        print('All columns in dataframe are in table "{}".'.format(db_table))
+        print('All columns in dataframe are in table "{}"...'.format(db_table))
         if db_columns == data_columns:
             print('The current order of dataframe columns is identical to table "{}".'.format(db_table))
             if not match_inplace:
