@@ -133,14 +133,12 @@ def save_csv(data, path):
     return
 
 def main():
+    
     # Connect to db
     conn = connect_db()
 
     # SQL query to extract partial dataset
     sql = 'SELECT * FROM {} LIMIT 500;'.format(DB_TABLE)
-
-    # Path to csv
-    save_path = project_dir + '/data/interim/permits_geocoded.csv'
 
     # Fetch data
     data = fetch_data(sql, conn)
@@ -156,6 +154,9 @@ def main():
     # Split latitude_longitude into separate columns and convert to float values: latitude, longitude
     data = split_column_lat_long(data)
     print("\nNew columns created:\n\n", data[['latitude_longitude', 'latitude', 'longitude', 'full_address']].head(), "\n")
+
+    # Path to csv
+    save_path = project_dir + '/data/interim/permits_geocoded.csv'
 
     # Save to interim folder
     print("Saving to interim folder...")

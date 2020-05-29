@@ -2,7 +2,7 @@
 import os
 import sys
 from pathlib import Path
-sys.path[0] = str(Path(__file__).resolve().parents[2]) # Set path for modules
+sys.path[0] = str(Path(__file__).resolve().parents[2]) # Set path for custom modules
 import click
 import logging
 from dotenv import find_dotenv, load_dotenv
@@ -10,11 +10,36 @@ import numpy as np
 import pandas as pd
 pd.options.mode.chained_assignment = None  # default='warn'; turn off SettingWithCopyWarning
 import psycopg2
-from src.toolkits.sql import connect_db # Import custom sql functions
+from src.toolkits.sql import connect_db, add_columns, update_table_values, fetch_data # Import custom sql functions
+from src.toolkits.eda import save_csv # Import custom eda functions
+
+# Get project root directory
+project_dir = str(Path(__file__).resolve().parents[2])
 
 
+def main():
+    
+    # Fetch data
+    csv_path = project_dir + '/data/interim/permits_geocoded.csv'
+    data = pd.read_csv(data_path)
+    print(data.head())
 
+    conn = connect_db()
 
+    #add_columns(data, DB_TABLE, conn, run=True);
+
+    # # Resave with reordered columns
+    # save_csv(data, data_path, match_db_order=True);
+
+    # # Path for sql query
+    # sql_path = project_dir + '/postgres/sql/update_table_values.sql'
+
+    # Path to mounted data volume inside Docker container
+    #container_path = '/var/local/data/interim/permits_geocoded.csv' # Path within container for COPY command
+
+    # update_table_values(DB_TABLE, con=conn, data_path=container_path, sql_path=sql_path, run=True);
+
+    return
 
 
 
@@ -24,8 +49,6 @@ if __name__ == '__main__':
 
     # not used in this stub but often useful for finding various files
     # only works in Python 3.6.1 and above
-    # Get project root directory
-    project_dir = str(Path(__file__).resolve().parents[2])
 
     # find .env automagically by walking up directories until it's found, then
     # load up the .env entries as environment variables
@@ -40,3 +63,18 @@ if __name__ == '__main__':
     DATA_URL = os.getenv("DATA_URL")
 
     DB_TABLE = "permits_raw"
+
+    main()
+
+    ### Check success
+    # Connect to db
+    # conn = connect_db()
+
+    # # Extract partial dataset
+    # sql = 'SELECT * FROM {} LIMIT 500;'.format(DB_TABLE)
+
+    # # Fetch data
+    # data = fetch_data(sql, conn)
+
+    # # Display
+    # print(data.head())

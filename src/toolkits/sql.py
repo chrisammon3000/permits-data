@@ -14,6 +14,7 @@ DB_PORT = os.getenv("DB_PORT")
 DB_HOST = os.getenv("DB_HOST")
 DATA_URL = os.getenv("DATA_URL")
 
+
 # Connect to PostgreSQL, useful only for notebook
 def connect_db():
     
@@ -29,7 +30,6 @@ def connect_db():
     host
     port
     connect_timeout
-
     """
 
     try:
@@ -47,6 +47,19 @@ def connect_db():
     
     return con
 
+
+# Fetch data from postgres
+def fetch_data(sql, con):
+    
+    # Fetch fresh data
+    data = pd.read_sql_query(sql, con, coerce_float=False)
+
+    # Replace None with np.nan
+    data.fillna(np.nan, inplace=True)
+    
+    return data
+                
+
 ## Get raw data column names
 def get_table_names(table, con):
     sql = "SELECT * FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = N'{}'".format(table)
@@ -54,6 +67,81 @@ def get_table_names(table, con):
     columns = etl['column_name']
     
     return columns
+
+
+def compare_column_order(data, db_table, con, match_inplace=False):
+    
+    db_columns = get_table_names(DB_TABLE, conn).tolist()
+    data_columns = data.columns.tolist()
+    
+    if force_match:
+        columns_reordered = get_table_names(DB_TABLE, conn).tolist()
+        data = data[columns_reordered]
+        return data
+    
+    if db_columns == data_columns:
+        print('The current order of columns is identical to table "{}".'.format(db_table))
+        return True
+    else:
+        if set(db_columns) == set(data_columns):
+            print('Columns are the same as table "{}" but the order is incorrect.'.format(db_table))
+            return False
+        else:
+            if len(set(db_columns)) > len(set(data_columns)):
+                print('Current data has less columns than table "{}":\n.'.format(db_table),
+                     list(set(db_columns) - set(data_columns)))
+                return False
+            else:
+                print('Current data has more columns than table "{}":\n.'.format(db_table),
+                     list(set(data_columns) - set(db_columns)))
+          
+    print("Inconclusive")
+    return
+
+
+def add_columns(data, db_table, con, run=False):
+
+    # Get names of current columns in PostgreSQL table
+    current_names = get_table_names(db_table, con)
+
+    # Get names of updated table not in current table
+    updated_names = data.columns.tolist()
+    new_names = list(set(updated_names) - set(current_names))
+    
+    # Check names list is not empty
+    if not new_names:
+        print("Table is up to date.")
+        return
+
+    # Format strings for query
+    alter_table_sql = "ALTER TABLE {db_table}\n"
+    add_column_sql = "\tADD COLUMN {column} TEXT,\n"
+
+    # Create a list and append ADD column statements
+    sql_query = [alter_table_sql.format(db_table=db_table)]
+    for name in new_names:
+        sql_query.append(add_column_sql.format(column=name))
+
+    # Join into one string
+    sql_query = ''.join(sql_query)[:-2] + ";"
+    
+    if run:
+        ### ADD TRY/EXCEPT TO RUN QUERY AGAINST DB
+        try:
+            print("Connecting...")
+            cur = con.cursor()
+            print("Executing query...")
+            cur.execute(sql_query)
+            print("Committing changes...")
+            con.commit()
+            cur.close()
+            print("Database updated successfully:\nAdd columns {}".format(', '.join(new_names)))
+        except Exception as e:
+            conn.rollback()
+            print('Error:\n', e)
+    
+    return sql_query
+
 
 # Map of character replacements
 replace_map = {' ': '_', '-': '_', '#': 'No', '/': '_', 
@@ -200,3 +288,52 @@ def update_table_types(column_dict, sql_string, table, printed=False,
         print('Set "write=True" and define path to run query from file.')
         
     return sql_update_type
+
+
+    # Builds a query to update postgres from a csv file
+def update_table_values(db_table, con, data_path, sql_path, run=False):
+
+    # CREATE TABLE and COPY
+    tmp_table = "tmp_" + db_table
+    
+    column_names = get_table_names(db_table, con)
+    column_names = column_names.tolist()
+    names = ',\n\t'.join(['{}'.format(name) + " TEXT" for name in column_names])
+
+    create_tmp_table_sql = 'CREATE TABLE {tmp_table} (\n\t{names}\n);\n\n'.format(tmp_table=tmp_table, names=names)
+    copy_from_table_sql = "COPY {tmp_table} FROM \'{data_path}\' (FORMAT csv, HEADER TRUE);\n\nUPDATE {db_table}\n".format(tmp_table=tmp_table, 
+                                                                                                   data_path=data_path, db_table=db_table)
+
+    # SET statements
+    updates_sql = ["SET "]
+
+    for name in column_names:
+        original_name = '{}'.format(name)
+        set_sql = "{name} = {tmp_name},\n\t".format(name=original_name, 
+                                                   tmp_name=tmp_table + '.' + name)
+        updates_sql.append(set_sql)
+
+    updates_sql = ''.join(updates_sql)
+
+    updates_sql = updates_sql[:-3] + "\n"
+
+    # FROM and WHERE clause
+    tail_sql = "FROM {tmp_table}\nWHERE {db_table}.pcis_permit_no = {tmp_table}.pcis_permit_no;\n" \
+        .format(tmp_table=tmp_table, db_table=db_table)
+
+    sql_query = create_tmp_table_sql + copy_from_table_sql + updates_sql + tail_sql
+    
+    if run:
+        ### ADD TRY/EXCEPT TO RUN QUERY AGAINST DB
+        try:
+            cur = con.cursor()
+            print("Executing...")
+            cur.execute(sql_query)
+            con.commit()
+            cur.close()
+            print('Table "{}" is updated.'.format(db_table))
+        except Exception as e:
+            con.rollback()
+            print('Error:\n', e)
+    
+    return sql_query
