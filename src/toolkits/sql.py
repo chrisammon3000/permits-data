@@ -54,10 +54,10 @@ def connect_db():
 
 
 # Fetch data from postgres
-def fetch_data(sql, con):
+def fetch_data(sql, con, parse_dates=None):
     
     # Fetch fresh data
-    data = pd.read_sql_query(sql, con, coerce_float=False)
+    data = pd.read_sql_query(sql, con, coerce_float=False, parse_dates=parse_dates)
 
     # Replace None with np.nan
     data.fillna(np.nan, inplace=True)
@@ -219,8 +219,8 @@ def update_table_names(old_columns, new_columns, db_table, con, path, run=False)
             print('Error:\n', e)
 
 # Updates column types in PostgreSQL database
-def update_table_types(column_dict, sql_string, table, printed=False, 
-                       write=False, path=None, run=False, con=None):
+def update_table_types(column_dict, sql_string, db_table, printed=False, 
+                       write=False, write_path=None, run=False, con=None):
     
     """
     Takes a sql statement to ALTER COLUMN types (string)
@@ -293,9 +293,9 @@ def update_table_types(column_dict, sql_string, table, printed=False,
         print(sql_update_type)
     
     if write:
-        with open(path, 'w') as text:
+        with open(write_path, 'w') as text:
             text.write(sql_update_type)
-        print("\nSQL written to:\n{}\n".format(path))
+        print("\nSQL written to:\n{}\n".format(write_path))
     
         if run:
             #assert con, "No connection to database."
@@ -315,7 +315,7 @@ def update_table_types(column_dict, sql_string, table, printed=False,
                 print('Error:\n', e)
                 
     elif run and not write:
-        print('Set "write=True" and define path to run query from file.')
+        print('Set "write=True" and define write_path to run query from file.')
         
     return sql_update_type
 
