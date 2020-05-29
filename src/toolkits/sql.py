@@ -5,15 +5,18 @@ import numpy as np
 import pandas as pd
 import psycopg2
 
+# find .env automagically by walking up directories until it's found, then
+# load up the .env entries as environment variables
+load_dotenv(find_dotenv())
+
 # Set environment variables
-load_dotenv(find_dotenv());
 POSTGRES_USER = os.getenv("POSTGRES_USER")
 POSTGRES_PASSWORD = os.getenv("POSTGRES_PASSWORD")
 POSTGRES_DB = os.getenv("POSTGRES_DB")
 DB_PORT = os.getenv("DB_PORT")
 DB_HOST = os.getenv("DB_HOST")
 DATA_URL = os.getenv("DATA_URL")
-
+DB_TABLE = "permits_raw"
 
 # Connect to PostgreSQL, useful only for notebook
 def connect_db():
@@ -71,32 +74,56 @@ def get_table_names(table, con):
 
 def compare_column_order(data, db_table, con, match_inplace=False):
     
-    db_columns = get_table_names(DB_TABLE, conn).tolist()
+    db_columns = get_table_names(db_table, con).tolist()
     data_columns = data.columns.tolist()
     
-    if force_match:
-        columns_reordered = get_table_names(DB_TABLE, conn).tolist()
+    print(db_columns)
+    print(data_columns)
+
+    if match_inplace:
+        columns_reordered = get_table_names(db_table, con).tolist()
         data = data[columns_reordered]
-        return data
+        data_columns = data.columns.tolist()
     
-    if db_columns == data_columns:
-        print('The current order of columns is identical to table "{}".'.format(db_table))
-        return True
-    else:
-        if set(db_columns) == set(data_columns):
-            print('Columns are the same as table "{}" but the order is incorrect.'.format(db_table))
-            return False
-        else:
-            if len(set(db_columns)) > len(set(data_columns)):
-                print('Current data has less columns than table "{}":\n.'.format(db_table),
-                     list(set(db_columns) - set(data_columns)))
-                return False
+    if set(db_columns) == set(data_columns):
+        print('All columns in dataframe are in table "{}".'.format(db_table))
+        if db_columns == data_columns:
+            print('The current order of dataframe columns is identical to table "{}".'.format(db_table))
+            if not match_inplace:
+                return True
             else:
-                print('Current data has more columns than table "{}":\n.'.format(db_table),
-                     list(set(data_columns) - set(db_columns)))
-          
-    print("Inconclusive")
-    return
+                return data
+        else:
+            print('The current order of dataframe columns is NOT identical to table "{}".'.format(db_table))
+            return False
+
+    elif len(set(db_columns)) > len(set(data_columns)):
+        print('Current dataframe has less columns than table "{}":\n.'.format(db_table), 
+                                        list(set(db_columns) - set(data_columns)))
+        return False
+    else:
+        print('Current dataframe has more columns than table "{}":\n.'.format(db_table), 
+                                        list(set(data_columns) - set(db_columns)))
+        return False
+
+
+    # if db_columns == data_columns:
+    #     print('The current order of columns is identical to table "{}".'.format(db_table))
+    #     return True
+    # else:
+    #     if set(db_columns) == set(data_columns):
+    #         print('Columns are the same as table "{}" but the order is incorrect.'.format(db_table))
+    #         return False
+    #     else:
+    #         if len(set(db_columns)) > len(set(data_columns)):
+    #             print('Current data has less columns than table "{}":\n.'.format(db_table),
+    #                  list(set(db_columns) - set(data_columns)))
+    #             return False
+    #         else:
+    #             print('Current data has more columns than table "{}":\n.'.format(db_table),
+    #                  list(set(data_columns) - set(db_columns)))
+
+    return data
 
 
 def add_columns(data, db_table, con, run=False):

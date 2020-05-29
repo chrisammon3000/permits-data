@@ -10,7 +10,7 @@ import numpy as np
 import pandas as pd
 pd.options.mode.chained_assignment = None  # default='warn'; turn off SettingWithCopyWarning
 import psycopg2
-from src.toolkits.sql import connect_db, add_columns, update_table_values, fetch_data # Import custom sql functions
+from src.toolkits.sql import connect_db, add_columns, update_table_values, fetch_data, compare_column_order # Import custom sql functions
 from src.toolkits.eda import save_csv # Import custom eda functions
 
 # Get project root directory
@@ -21,13 +21,18 @@ def main():
     
     # Fetch data
     csv_path = project_dir + '/data/interim/permits_geocoded.csv'
-    data = pd.read_csv(data_path)
-    print(data.head())
+    print("Reading csv...")
+    data = pd.read_csv(csv_path)
+    print(data.head().iloc[:,-3:])
 
     conn = connect_db()
 
     #add_columns(data, DB_TABLE, conn, run=True);
 
+    compare_column_order(data, DB_TABLE, con=conn, match_inplace=True)
+
+    print(data.head().iloc[:,-4:])
+    print(fetch_data('SELECT * FROM {} LIMIT 500;'.format(DB_TABLE), conn).head().iloc[:,-4:])
     # # Resave with reordered columns
     # save_csv(data, data_path, match_db_order=True);
 
@@ -61,7 +66,6 @@ if __name__ == '__main__':
     DB_PORT = os.getenv("DB_PORT")
     DB_HOST = os.getenv("DB_HOST")
     DATA_URL = os.getenv("DATA_URL")
-
     DB_TABLE = "permits_raw"
 
     main()
