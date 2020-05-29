@@ -154,27 +154,3 @@ def explore_value_counts(dataframe, n=None, max_n=1500, columns=None, printed=Tr
     else:
         return make_tables()
 
-# Save csv with option to match order of columns in postgres
-def save_csv(data, path, match_db_order=False):
-
-    # Check unique columns
-    assert data.columns.tolist() == data.columns.unique().tolist(), "Extra columns detected."
-    
-    # Check for null values
-    assert data['latitude'].any(), 'Column "latitude" has missing values.'
-    assert data['longitude'].any(), 'Column "longitude" has missing values.'
-
-    # Check for erroneous coordinates. All coordinates should fall within Los Angeles county.
-    assert (data['latitude'] > 33.2).all() and (data['latitude'] < 34.9).all(), "Incorrect latitude detected"
-    assert (data['longitude'] > -118.9).all() and (data['longitude'] < -118).all(), "Incorrect longitude detected"
-
-    if match_db_order:
-        # Fetch names in postgres table and use to reorder columns dataframe
-        columns_reordered = get_table_names(DB_TABLE, conn).tolist()
-        data = data[columns_reordered]
-        print("Columns are correctly reordered.")
-    
-    # Write to csv
-    data.to_csv(path, index=False)
-    
-    return

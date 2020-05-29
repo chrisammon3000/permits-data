@@ -10,8 +10,8 @@ import numpy as np
 import pandas as pd
 pd.options.mode.chained_assignment = None  # default='warn'; turn off SettingWithCopyWarning
 import psycopg2
-from src.toolkits.sql import connect_db, add_columns, update_table_values, fetch_data, compare_column_order # Import custom sql functions
-from src.toolkits.eda import save_csv # Import custom eda functions
+from src.toolkits.sql import connect_db, add_columns, update_table_values, fetch_data, compare_column_order, save_csv # Import custom sql functions
+#from src.toolkits.eda import  # Import custom eda functions
 
 # Get project root directory
 project_dir = str(Path(__file__).resolve().parents[2])
@@ -23,29 +23,29 @@ def main():
     csv_path = project_dir + '/data/interim/permits_geocoded.csv'
     print("Reading csv...")
     data = pd.read_csv(csv_path)
-    print(data.head().iloc[:,-3:])
 
     conn = connect_db()
 
-    #add_columns(data, DB_TABLE, conn, run=True);
+    # Checks that columns in csv are in same order as db table
+    #data = compare_column_order(data, DB_TABLE, con=conn, match_inplace=True)
 
-    compare_column_order(data, DB_TABLE, con=conn, match_inplace=True)
+    # Resave with reordered columns
+    save_csv(data, csv_path, db_table=DB_TABLE, match_db_order=True, con=conn);
 
-    print(data.head().iloc[:,-4:])
-    print(fetch_data('SELECT * FROM {} LIMIT 500;'.format(DB_TABLE), conn).head().iloc[:,-4:])
-    # # Resave with reordered columns
-    # save_csv(data, data_path, match_db_order=True);
+    # Path for sql query
+    sql_path = project_dir + '/postgres/sql/update_table_values.sql'
 
-    # # Path for sql query
-    # sql_path = project_dir + '/postgres/sql/update_table_values.sql'
+    # Path to mounted data volume inside Docker container for COPY command
+    container_path = '/var/local/data/interim/permits_geocoded.csv'
 
-    # Path to mounted data volume inside Docker container
-    #container_path = '/var/local/data/interim/permits_geocoded.csv' # Path within container for COPY command
+    # Update Postgres
+    print("Updating table...")
+    update_table_values(DB_TABLE, con=conn, data_path=container_path, sql_path=sql_path, run=True);
 
-    # update_table_values(DB_TABLE, con=conn, data_path=container_path, sql_path=sql_path, run=True);
+    conn.close()
+    print("Connection closed.")
 
     return
-
 
 
 if __name__ == '__main__':
@@ -70,15 +70,14 @@ if __name__ == '__main__':
 
     main()
 
-    ### Check success
-    # Connect to db
-    # conn = connect_db()
+    ## Check success
+    conn = connect_db()
 
-    # # Extract partial dataset
-    # sql = 'SELECT * FROM {} LIMIT 500;'.format(DB_TABLE)
+    # Extract partial dataset
+    sql = 'SELECT * FROM {} LIMIT 500;'.format(DB_TABLE)
 
-    # # Fetch data
-    # data = fetch_data(sql, conn)
+    # Fetch data
+    data = fetch_data(sql, conn)
 
-    # # Display
-    # print(data.head())
+    # Display
+    print(data.head().iloc[:, -6:])

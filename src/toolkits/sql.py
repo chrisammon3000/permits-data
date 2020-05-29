@@ -77,8 +77,9 @@ def compare_column_order(data, db_table, con, match_inplace=False):
     db_columns = get_table_names(db_table, con).tolist()
     data_columns = data.columns.tolist()
     
-    print(db_columns)
-    print(data_columns)
+    # Debugging
+    #print(db_columns)
+    #print(data_columns)
 
     if match_inplace:
         columns_reordered = get_table_names(db_table, con).tolist()
@@ -364,3 +365,29 @@ def update_table_values(db_table, con, data_path, sql_path, run=False):
             print('Error:\n', e)
     
     return sql_query
+
+
+# Save csv with option to match order of columns in postgres
+def save_csv(data, path, match_db_order=False, db_table=None, con=None):
+
+    # Check unique columns
+    assert data.columns.tolist() == data.columns.unique().tolist(), "Extra columns detected."
+    
+    # Check for null values
+    assert data['latitude'].any(), 'Column "latitude" has missing values.'
+    assert data['longitude'].any(), 'Column "longitude" has missing values.'
+
+    # Check for erroneous coordinates. All coordinates should fall within Los Angeles county.
+    assert (data['latitude'] > 33.2).all() and (data['latitude'] < 34.9).all(), "Incorrect latitude detected"
+    assert (data['longitude'] > -118.9).all() and (data['longitude'] < -118).all(), "Incorrect longitude detected"
+
+    if match_db_order:
+        # Fetch names in postgres table and use to reorder columns dataframe
+        columns_reordered = get_table_names(db_table, con).tolist()
+        data = data[columns_reordered]
+        print("Columns are have been reordered to match database table {}.".format(db_table))
+    
+    # Write to csv
+    data.to_csv(path, index=False)
+    
+    return
