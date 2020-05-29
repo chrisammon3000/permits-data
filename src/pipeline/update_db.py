@@ -27,10 +27,14 @@ def main():
     conn = connect_db()
 
     # Checks that columns in csv are in same order as db table
-    #data = compare_column_order(data, DB_TABLE, con=conn, match_inplace=True)
+    compare_column_order(data, DB_TABLE, con=conn)
+
+    add_columns(data, DB_TABLE, con=conn, run=True)
+    
+    compare_column_order(data, DB_TABLE, con=conn)
 
     # Resave with reordered columns
-    save_csv(data, csv_path, db_table=DB_TABLE, match_db_order=True, con=conn);
+    #save_csv(data, csv_path, db_table=DB_TABLE, match_db_order=True, con=conn);
 
     # Path for sql query
     sql_path = project_dir + '/postgres/sql/update_table_values.sql'
@@ -80,4 +84,5 @@ if __name__ == '__main__':
     data = fetch_data(sql, conn)
 
     # Display
-    print(data.head().iloc[:, -6:])
+    print("Checking results...\n\n", data.head().iloc[:, -6:])
+    print(data.columns.tolist())

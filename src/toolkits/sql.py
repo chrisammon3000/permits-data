@@ -47,6 +47,8 @@ def connect_db():
               
     except Exception as e:
         print('Error:\n', e)
+        return None
+
     
     return con
 
@@ -99,7 +101,7 @@ def compare_column_order(data, db_table, con, match_inplace=False):
             return False
 
     elif len(set(db_columns)) > len(set(data_columns)):
-        print('Current dataframe has less columns than table "{}":\n.'.format(db_table), 
+        print('Current dataframe has less columns than table "{}":\n'.format(db_table), 
                                         list(set(db_columns) - set(data_columns)))
         return False
     else:

@@ -66,13 +66,13 @@ load_db: start_db
 ##transform_data: load_db
 
 ## Process raw data
-data: load_db ##update_db
+transform_data: load_db ##update_db
 	@echo "### Cleaning Data... ###"
 	@$(PYTHON_INTERPRETER) src/pipeline/transform_data.py
 	@echo "Finished."
 	
 ## Load cleaned data
-update_db:
+data: transform_data
 	@$(PYTHON_INTERPRETER) src/pipeline/update_db.py
 
 ## Stops database
