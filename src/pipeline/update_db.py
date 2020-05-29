@@ -47,6 +47,8 @@ def main():
     print("Updating table...")
     update_table_values(DB_TABLE, con=conn, data_path=container_path, sql_path=sql_path, run=True);
 
+    #update_table_types()
+
     conn.close()
     print("Connection closed.")
 
