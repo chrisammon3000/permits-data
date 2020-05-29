@@ -101,11 +101,11 @@ def compare_column_order(data, db_table, con, match_inplace=False):
             return False
 
     elif len(set(db_columns)) > len(set(data_columns)):
-        print('Current dataframe has less columns than table "{}":\n'.format(db_table), 
+        print('\nCurrent dataframe has less columns than table "{}":\n'.format(db_table), 
                                         list(set(db_columns) - set(data_columns)))
         return False
     else:
-        print('Current dataframe has more columns than table "{}":\n.'.format(db_table), 
+        print('\nCurrent dataframe has more columns than table "{}":\n'.format(db_table), 
                                         list(set(data_columns) - set(db_columns)))
         return False
 
@@ -385,9 +385,9 @@ def save_csv(data, path, match_db_order=False, db_table=None, con=None):
 
     if match_db_order:
         # Fetch names in postgres table and use to reorder columns dataframe
+        print("Reordering columns in dataframe to match table {}...".format(db_table))
         columns_reordered = get_table_names(db_table, con).tolist()
         data = data[columns_reordered]
-        print("Columns are have been reordered to match database table {}.".format(db_table))
     
     # Write to csv
     data.to_csv(path, index=False)
