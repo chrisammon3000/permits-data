@@ -10,11 +10,13 @@ import numpy as np
 import pandas as pd
 pd.options.mode.chained_assignment = None  # default='warn'; turn off SettingWithCopyWarning
 import psycopg2
-from src.toolkits.sql import connect_db, add_columns, update_table_values, fetch_data, compare_column_order, save_csv # Import custom sql functions
+import src.toolkits.sql
 #from src.toolkits.eda import  # Import custom eda functions
 
 # Get project root directory
 project_dir = str(Path(__file__).resolve().parents[2])
+
+
 
 
 def main():
@@ -75,7 +77,7 @@ if __name__ == '__main__':
     DATA_URL = os.getenv("DATA_URL")
     DB_TABLE = "permits_raw"
 
-    main()
+    #main()
 
     ## Check success
     conn = connect_db()
