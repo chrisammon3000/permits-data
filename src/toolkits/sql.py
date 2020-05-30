@@ -360,8 +360,8 @@ def save_csv(data, path, match_db_order=False, db_table=None, con=None):
     assert data['longitude'].any(), 'Column "longitude" has missing values.'
 
     # Check for erroneous coordinates. All coordinates should fall within Los Angeles county.
-    assert (data['latitude'] > 33.2).all() and (data['latitude'] < 34.9).all(), "Incorrect latitude detected"
-    assert (data['longitude'] > -118.9).all() and (data['longitude'] < -118).all(), "Incorrect longitude detected"
+    assert (data['latitude'] > 33.2).all() and (data['latitude'] < 34.9).all(), "Incorrect latitude detected."
+    assert (data['longitude'] > -118.9).all() and (data['longitude'] < -118).all(), "Incorrect longitude detected."
 
     if match_db_order:
         # Fetch names in postgres table and use to reorder columns dataframe
