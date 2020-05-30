@@ -101,7 +101,7 @@ clear_docker: clear_db
 	@echo "Done."
 
 ## Removes deletes db and cleans up project files, keeps downloaded data
-tear_down: clear_docker clean
+tear_down: check_env clear_docker clean
 	## Add warning, deletes all data #
 	@echo "Tear down complete."
 

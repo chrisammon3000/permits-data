@@ -74,7 +74,7 @@ def get_table_names(table, con):
     return columns
 
 
-def compare_column_order(data, db_table, con, match_inplace=False):
+def compare_column_order(data, db_table, con, reorder_inplace=False):
     
     db_columns = get_table_names(db_table, con).tolist()
     data_columns = data.columns.tolist()
@@ -83,7 +83,7 @@ def compare_column_order(data, db_table, con, match_inplace=False):
     #print(db_columns)
     #print(data_columns)
 
-    if match_inplace:
+    if reorder_inplace:
         columns_reordered = get_table_names(db_table, con).tolist()
         data = data[columns_reordered]
         data_columns = data.columns.tolist()
@@ -101,30 +101,13 @@ def compare_column_order(data, db_table, con, match_inplace=False):
             return False
 
     elif len(set(db_columns)) > len(set(data_columns)):
-        print('\nCurrent dataframe has less columns than table "{}":\n'.format(db_table), 
+        print('Current dataframe has less columns than table "{}":\n'.format(db_table), 
                                         list(set(db_columns) - set(data_columns)))
         return False
     else:
-        print('\nCurrent dataframe has more columns than table "{}":\n'.format(db_table), 
+        print('Current dataframe has more columns than table "{}":\n'.format(db_table), 
                                         list(set(data_columns) - set(db_columns)))
         return False
-
-
-    # if db_columns == data_columns:
-    #     print('The current order of columns is identical to table "{}".'.format(db_table))
-    #     return True
-    # else:
-    #     if set(db_columns) == set(data_columns):
-    #         print('Columns are the same as table "{}" but the order is incorrect.'.format(db_table))
-    #         return False
-    #     else:
-    #         if len(set(db_columns)) > len(set(data_columns)):
-    #             print('Current data has less columns than table "{}":\n.'.format(db_table),
-    #                  list(set(db_columns) - set(data_columns)))
-    #             return False
-    #         else:
-    #             print('Current data has more columns than table "{}":\n.'.format(db_table),
-    #                  list(set(data_columns) - set(db_columns)))
 
     return data
 
@@ -220,7 +203,7 @@ def update_table_names(old_columns, new_columns, db_table, con, path, run=False)
 
 # Updates column types in PostgreSQL database
 def update_table_types(column_dict, sql_string, db_table, printed=False, 
-                       write=False, write_path=None, run=False, con=None):
+                       write_query=False, write_path=None, run_query=False, con=None):
     
     """
     Takes a sql statement to ALTER COLUMN types (string)
@@ -232,7 +215,7 @@ def update_table_types(column_dict, sql_string, db_table, printed=False,
     # Dictionary of SQL types
     numeric_cols = {'valuation': 'NUMERIC(12, 2)'}
     
-    # ALTER column statement as string, do not end with ',' or ';'
+    # ALTER column statement as format string, do not end with ',' or ';'
     sql_numeric = "ALTER {column} TYPE {col_type} USING {column}::numeric"
     
     # Writes a out text file to disk
@@ -252,9 +235,9 @@ def update_table_types(column_dict, sql_string, db_table, printed=False,
     sql_string : string
         Must be a SQL query string in form:
         "ALTER {column} TYPE {col_type} USING {column}::numeric
-
-    table : string
-        Name of table in PostgreSQL database
+        
+    db_table : string
+        Name of table in database
     
     printed : boolean
         If True will output to console
@@ -273,7 +256,7 @@ def update_table_types(column_dict, sql_string, db_table, printed=False,
     """
     
     # Define SQL update queries
-    sql_alter_table = "ALTER TABLE public.{db_table}\n\t".format(db_table=table)
+    sql_alter_table = "ALTER TABLE public.{db_table}\n\t".format(db_table=db_table)
 
     # Append comma, new line and tab
     sql_string = sql_string + ",\n\t"
@@ -292,35 +275,32 @@ def update_table_types(column_dict, sql_string, db_table, printed=False,
     if printed:
         print(sql_update_type)
     
-    if write:
+    if write_query:
         with open(write_path, 'w') as text:
             text.write(sql_update_type)
         print("\nSQL written to:\n{}\n".format(write_path))
     
-        if run:
-            #assert con, "No connection to database."
-            # try in case connection not open
-            try:
-                print("Connecting...")
-                cur = con.cursor()
-                sql_file = open(path, 'r')
-                print("Executing query...")
-                cur.execute(sql_file.read())
-                print("Committing changes...")
-                con.commit()
-                cur.close()
-                print("Database updated successfully.")
-            except Exception as e:
-                conn.rollback()
-                print('Error:\n', e)
-                
-    elif run and not write:
-        print('Set "write=True" and define write_path to run query from file.')
+    if run_query:
+        #assert con, "No connection to database."
+        # try in case connection not open
+        try:
+            print("Connecting to database...")
+            cur = con.cursor()
+            print('Executing query on table "{}"...'.format(db_table))
+            cur.execute(sql_update_type)
+            print("Committing changes...")
+            con.commit()
+            cur.close()
+            print("Database updated successfully.")
+        except Exception as e:
+            con.rollback()
+            print('Error:\n', e)
+
         
     return sql_update_type
 
 
-    # Builds a query to update postgres from a csv file
+# Builds a query to update postgres from a csv file
 def update_table_values(db_table, con, data_path, sql_path, run=False):
 
     # CREATE TABLE and COPY
@@ -385,9 +365,9 @@ def save_csv(data, path, match_db_order=False, db_table=None, con=None):
 
     if match_db_order:
         # Fetch names in postgres table and use to reorder columns dataframe
-        print("Reordering columns in dataframe to match table {}...".format(db_table))
         columns_reordered = get_table_names(db_table, con).tolist()
         data = data[columns_reordered]
+        print("Columns in dataframe have been reordered to match table {}.".format(db_table))
     
     # Write to csv
     data.to_csv(path, index=False)
