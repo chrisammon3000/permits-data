@@ -57,9 +57,9 @@ start_db: check_env
 load_db: start_db
 	@echo "### Loading PostgreSQL Database... ###"
 	@scripts/load_db.sh
-	@echo "Done."
-	@echo "### Processing Data... ###"
-	@$(PYTHON_INTERPRETER) src/pipeline/load_data.py
+	#@echo "Done."
+	#@echo "### Processing Data... ###"
+	#@$(PYTHON_INTERPRETER) src/pipeline/load_data.py
 	@echo "Database is loaded."
 
 ## Clean data
