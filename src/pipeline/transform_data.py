@@ -82,6 +82,11 @@ def geocode_latitude_longitude(data):
     cost = num_missing * 0.005
     print("Cost for geocoding {} addresses is ${:.2f}.".format(num_missing, cost))
 
+    # Google Maps environment variables
+    load_dotenv(find_dotenv());
+    GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
+    GOOGLE_AGENT = os.getenv("GOOGLE_AGENT")
+
     # Geocode missing coordinates using full addresses
     if len(data_missing) > 0:
         try:
@@ -98,7 +103,7 @@ def geocode_latitude_longitude(data):
     # Update dataframe
     data.update(data_missing)
 
-    return data
+    return
 
 def split_column_lat_long(data):
     
