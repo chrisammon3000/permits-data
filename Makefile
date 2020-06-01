@@ -73,8 +73,8 @@ transform_data: load_db ##update_db
 	
 ## Load cleaned data
 data: transform_data
-	@echo "### Updating Database... ###"
-	@$(PYTHON_INTERPRETER) src/pipeline/update_db.py
+	# @echo "### Updating Database... ###"
+	# @$(PYTHON_INTERPRETER) src/pipeline/update_db.py
 	@echo "### End Pipeline ###"
 
 ## Stops database

@@ -11,13 +11,9 @@ import pandas as pd
 pd.options.mode.chained_assignment = None  # default='warn'; turn off SettingWithCopyWarning
 import psycopg2
 import src.toolkits.sql
-#from src.toolkits.eda import  # Import custom eda functions
 
 # Get project root directory
 project_dir = str(Path(__file__).resolve().parents[2])
-
-
-
 
 def main():
     
@@ -91,15 +87,3 @@ if __name__ == '__main__':
     # Fetch data
     data_from_db = fetch_data(sql, conn)
     data_from_file = pd.read_csv(csv_path)
-
-    # if data_from_db.equals(data_from_file):
-    #     print("\n\nDatabase successfully updated.\n\n")
-    # else:
-    #     print("\n\nData appears different.\n\n")
-
-    # print(data_from_db.info())
-    # print(data_from_file.info())
-
-    # # Display
-    # print("Checking results...\n\n", data.head().iloc[:, -6:])
-    # print(data.columns.tolist())
