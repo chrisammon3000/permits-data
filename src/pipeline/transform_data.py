@@ -9,7 +9,7 @@ pd.options.mode.chained_assignment = None  # default='warn'; turn off SettingWit
 
 
 # Concatenate address columns into full_address column
-def create_column_full_address(data):
+def create_full_address(data):
 
     # Truncate suffix_direction to first letter (N, S, E, W)
     data['suffix_direction'] = data['suffix_direction'].str[0].fillna('')
@@ -49,7 +49,7 @@ def split_lat_long(data):
 
 
 if __name__ == '__main__':
-    
+
     # Get project root directory
     project_dir = sys.path[0]
 

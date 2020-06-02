@@ -2,12 +2,10 @@ import os
 import sys
 from pathlib import Path
 sys.path[0] = str(Path(__file__).resolve().parents[2]) # Set path for modules
-import logging
 from dotenv import load_dotenv, find_dotenv
 import pandas as pd
 pd.options.mode.chained_assignment = None  # default='warn'; turn off SettingWithCopyWarning
 import psycopg2 # SQL libraries
-from src.toolkits.sql import connect_db # Import custom sql functions
 from geopy.geocoders import Nominatim # Import dependencies for geocoding
 from geopy.geocoders import GoogleV3
 from geopy.extra.rate_limiter import RateLimiter

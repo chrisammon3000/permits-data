@@ -1,30 +1,188 @@
 import os
 import sys
 from pathlib import Path
-import warnings
-from io import StringIO
+sys.path[0] = str(Path(__file__).resolve().parents[2]) # Set path for custom modules
 from dotenv import load_dotenv, find_dotenv
 import pandas as pd
 import psycopg2
-from src.pipeline.dictionaries import types_dict, replace_map
-
-#sys.path[0] = str(Path(__file__).resolve().parents[2]) # Set path for custom modules
+import warnings
+from io import StringIO
 
 # if modulename not in sys.modules: print...
 load_dotenv(find_dotenv());
 
+class Database():
+    
+    def __init__(self, user="postgres", password="postgres",
+                 dbname=None, host="localhost", port=5432):
+
+        # Loaded from .env if not explicit
+        self.user = os.getenv("POSTGRES_USER") or user
+        self.password = os.getenv("POSTGRES_PASSWORD") or password
+        self.dbname = os.getenv("POSTGRES_DB") or dbname
+        self.host = os.getenv("DB_HOST") or host
+        self.port = os.getenv("DB_PORT") or port
+        
+        
+    def _connect(self):
+
+        """
+        Connects to PostgreSQL database using psycopg2 driver. Same
+        arguments as psycopg2.connect().
+
+        Params
+        --------
+        dbname
+        user
+        password
+        host
+        port
+        connect_timeout
+        """
+
+        try:
+            con = psycopg2.connect(dbname=self.dbname,
+                                   user=self.user,
+                                   password=self.password,
+                                    host=self.host, 
+                                    port=self.port,
+                                  connect_timeout=3)            
+        except Exception as e:
+            print('Error:', e)
+            return None
+
+        return con
+    
+    @property
+    def _con(self):
+        try:
+            con = self._connect()
+            print('Connected as user "{}" to database "{}" on http://{}:{}.'.format(self.user,self.dbname,
+                                                               self.host,self.port))
+            con.close()
+        except Exception as e:
+            con.rollback()
+            print('Error:', e)
+        finally:
+            if con is not None:
+                con.close()
+                
+                
+    def _run_query(self, sql):
+        
+        try:
+            con = self._connect()
+        except Exception as e:
+            print("Error:", e)            
+            
+        try:
+            cur = con.cursor()
+            cur.execute(sql)
+            con.commit()
+            cur.close()
+            print('Query successful on database "{}".'.format(self.dbname))
+        except Exception as e:
+            con.rollback()
+            print("Error:", e)
+        finally:
+            if con is not None:
+                con.close()
+        
+        return
+    
+    def create_table(self, table_name, types_dict, id_col, columns=None):
+        
+        # Append id_col to selected columns
+        columns = None if not columns else set([id_col] + columns)
+        
+        # Subsets types_dict by columns argument and formats into string if no columns are specified
+        types_dict = types_dict if not columns else {key:value for key, value in types_dict.items() if key in set(columns)}
+        names = ',\n\t'.join(['{key} {val}'.format(key=key, val=val) for key, val in types_dict.items()])
+        
+        # Build queries
+        sql = 'CREATE TABLE {table_name} (\n\t{names}\n);\n\n' \
+                            .format(table_name=table_name, names=names) # + sql
+        
+        # Execute query
+        self._run_query(sql)
+        
+        return self
+    
+    
+    def drop_table(self, table_name):
+        
+        # Build queries
+        sql = 'DROP TABLE IF EXISTS {table_name};\n\n'.format(table_name=table_name)
+        
+        # Execute query
+        self._run_query(sql)
+        
+        return self
+    
+
+    def _create_temp_table(self, types_dict, id_col, columns=None):
+        
+        # Append id_col to selected columns
+        columns = None if not columns else [id_col] + columns
+        
+        # CREATE TABLE query
+        tmp_table = "tmp" + self.table
+        
+        # Subsets types_dict by columns argument and formats into string if no columns are specified
+        types_dict = types_dict if not columns else {key:value for key, value in types_dict.items() if key in set(columns)}
+        names = ',\n\t'.join(['{key} {val}'.format(key=key, val=val) for key, val in types_dict.items()])
+        
+        # Build queries
+        sql = 'DROP TABLE IF EXISTS {tmp_table};\n\n'.format(tmp_table=tmp_table)
+        sql = sql + 'CREATE TABLE {tmp_table} (\n\t{names}\n);\n\n' \
+                                .format(tmp_table=tmp_table, names=names)
+        
+        # Execute query
+        self._run_query(sql)
+        
+        return self
+    
+    
+    ## List tables
+    def list_tables(self):
+        
+        sql = """
+        SELECT tablename FROM pg_catalog.pg_tables
+        WHERE schemaname NOT IN ('pg_catalog', 'information_schema');
+        """
+        
+        try:
+            con = self._connect()
+            cur = con.cursor()
+            cur.execute(sql)
+        except Exception as e:
+            con.rollback()
+            print("Error:", e)
+            
+        results = cur.fetchall()
+        
+        tables = []
+        
+        for result in results:
+            tables.append(*result)
+            
+        return tables
+        
+
 class Table(Database):
-    def __init__(self, user=None, password=None, dbname=None, host=None, port=None, table=None):
+    def __init__(self, name, user="postgres", password="postgres",
+                 dbname=None, host="localhost", port=5432):
+        
         super().__init__(user, password, dbname, host, port)
         
-        self.table = table
+        self.table = name
         
         # Loaded from .env if not explicit
-        self.user = user if user is not None else os.getenv("POSTGRES_USER")
-        self.password = password if password is not None else os.getenv("POSTGRES_PASSWORD")
-        self.dbname = dbname if dbname is not None else os.getenv("POSTGRES_DB")
-        self.host = host if host is not None else os.getenv("DB_HOST")
-        self.port = port if port is not None else os.getenv("DB_PORT")
+        self.user = os.getenv("POSTGRES_USER") or user
+        self.password = os.getenv("POSTGRES_PASSWORD") or password
+        self.dbname = os.getenv("POSTGRES_DB") or dbname
+        self.host = os.getenv("DB_HOST") or host
+        self.port = os.getenv("DB_PORT") or port
 
     
     # Connect to database
@@ -45,7 +203,9 @@ class Table(Database):
     
     
     # Fetch data from sql query
-    def fetch_data(self, sql, coerce_float=False, parse_dates=None):
+    def fetch_data(self, sql=None, coerce_float=False, parse_dates=None):
+        
+        sql = sql or "SELECT * FROM {};".format(self.table)
         
         con = self.__connect()
         
@@ -83,7 +243,8 @@ class Table(Database):
     def get_types(self, as_dataframe=False):
         
         # Specific query to retrieve table names
-        sql = '''SELECT column_name, 
+        sql = """
+        SELECT column_name, 
         CASE 
             WHEN domain_name is not null then domain_name
             WHEN data_type='character varying' THEN 'varchar('||character_maximum_length||')'
@@ -92,7 +253,7 @@ class Table(Database):
             ELSE data_type
         END AS type
         FROM information_schema.columns WHERE table_name = 'permits_raw';
-        '''
+        """
         
         # Run query and extract
         try:
@@ -290,3 +451,4 @@ class Table(Database):
         
                 
 ####Update types
+        
