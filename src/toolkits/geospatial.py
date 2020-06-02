@@ -12,6 +12,14 @@ from geopy.geocoders import Nominatim # Import dependencies for geocoding
 from geopy.geocoders import GoogleV3
 from geopy.extra.rate_limiter import RateLimiter
 
+# find .env automagically by walking up directories until it's found, then
+# load up the .env entries as environment variables
+load_dotenv(find_dotenv());
+
+# Google Maps environment variables
+GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
+GOOGLE_AGENT = os.getenv("permits-data")
+
 # Create helper function to geocode missing latitude_longitude values
 def geocode(address, key, agent, timeout=5):
 
@@ -24,8 +32,8 @@ def geocode(address, key, agent, timeout=5):
 
     if address:
         # Instantiates GoogleMaps geocoder
-        geolocator = GoogleV3(api_key=key, 
-                                user_agent=agent, 
+        geolocator = GoogleV3(api_key=GOOGLE_API_KEY or key, 
+                                user_agent=GOOGLE_AGENT or agent, 
                                 timeout=timeout)
 
         # Adds Rate Limiter to space out requests

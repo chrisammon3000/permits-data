@@ -8,20 +8,6 @@ import pandas as pd
 pd.options.mode.chained_assignment = None  # default='warn'; turn off SettingWithCopyWarning
 import psycopg2 # SQL libraries
 from src.toolkits.sql import connect_db # Import custom sql functions
-from geopy.geocoders import Nominatim # Import dependencies for geocoding
-from geopy.geocoders import GoogleV3
-from geopy.extra.rate_limiter import RateLimiter
-
-# Fetch data from postgres
-def fetch_data(sql, con):
-    
-    # Fetch fresh data
-    data = pd.read_sql_query(sql, con, coerce_float=False)
-
-    # Replace None with np.nan
-    data.fillna(np.nan, inplace=True)
-    
-    return data
 
 # Concatenate address columns into full_address column
 def create_column_full_address(data):
@@ -46,7 +32,7 @@ def create_column_full_address(data):
 
 
 
-def split_column_lat_long(data):
+def split_lat_long(data):
     
     # Check that there are no more missing coordinates before proceeding
     assert data['latitude_longitude'].notnull().any(), "Missing coordinates must be geocoded."
@@ -59,24 +45,6 @@ def split_column_lat_long(data):
         # Add to original data
         return pd.concat([data, lat_long_series], axis=1)
 
-# Checks columns are correct and saves to csv
-def save_csv(data, path):
-
-    # Check unique columns
-    assert data.columns.tolist() == data.columns.unique().tolist(), "Extra columns detected."
-    
-    # Check for null values
-    assert data['latitude'].any(), 'Column "latitude" has missing values.'
-    assert data['longitude'].any(), 'Column "longitude" has missing values.'
-
-    # Check for erroneous coordinates. All coordinates should fall within Los Angeles county.
-    assert (data['latitude'] > 33.2).all() and (data['latitude'] < 34.9).all(), "Incorrect latitude detected"
-    assert (data['longitude'] > -118.9).all() and (data['longitude'] < -118).all(), "Incorrect longitude detected"
-
-    # Write to csv
-    data.to_csv(path, index=False)
-    
-    return
 
 def main():
     
