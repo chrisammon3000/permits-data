@@ -11,15 +11,15 @@ sys.path[0] = str(Path(__file__).resolve().parents[2]) # Set path for custom mod
 load_dotenv(find_dotenv());
 
 class Database():    
-    def __init__(self, user=None, password=None,
-                 dbname=None, host=None, port=None):
+    def __init__(self, user="postgres", password="postgres",
+                 dbname=None, host=None, port=5432):
 
         # Loaded from .env if not explicit
-        self.user = user if user is not None else os.getenv("POSTGRES_USER")
-        self.password = password if password is not None else os.getenv("POSTGRES_PASSWORD")
-        self.dbname = dbname if dbname is not None else os.getenv("POSTGRES_DB")
-        self.host = host if host is not None else os.getenv("DB_HOST")
-        self.port = port if port is not None else os.getenv("DB_PORT")
+        self.user = os.getenv("POSTGRES_USER") or user
+        self.password = os.getenv("POSTGRES_PASSWORD") or password
+        self.dbname = os.getenv("POSTGRES_DB") or dbname
+        self.host = os.getenv("DB_HOST") or host
+        self.port = os.getenv("DB_PORT") or port
         
     def _connect(self):
 
