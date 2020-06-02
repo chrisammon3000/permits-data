@@ -12,6 +12,9 @@ from io import StringIO
 # if modulename not in sys.modules: print...
 load_dotenv(find_dotenv());
 
+
+#### Database class ####
+
 class Database():
     
     def __init__(self, user="postgres", password="postgres",
@@ -120,17 +123,26 @@ class Database():
         
         return self
     
+    
+    def _subset_types_dict(self, types_dict, columns):
+        
+        types_dict = types_dict if not columns else {key:value for key, value in types_dict.items() if key in set(columns)}
+        columns = self.get_names().tolist() if not columns else columns
+        
+        return types_dict, columns
+    
 
     def _create_temp_table(self, types_dict, id_col, columns=None):
+        
+        types_dict, _ = self._subset_types_dict(types_dict, columns)
         
         # Append id_col to selected columns
         columns = None if not columns else [id_col] + columns
         
         # CREATE TABLE query
-        tmp_table = "tmp" + self.table
+        tmp_table = "tmp_" + self.table
         
         # Subsets types_dict by columns argument and formats into string if no columns are specified
-        types_dict = types_dict if not columns else {key:value for key, value in types_dict.items() if key in set(columns)}
         names = ',\n\t'.join(['{key} {val}'.format(key=key, val=val) for key, val in types_dict.items()])
         
         # Build queries
@@ -170,6 +182,8 @@ class Database():
         return tables
         
 
+#### Table class ####
+
 class Table(Database):
     def __init__(self, name, user="postgres", password="postgres",
                  dbname=None, host="localhost", port=5432):
@@ -198,7 +212,9 @@ class Table(Database):
     def __run_query(self, sql):
         return super(Table, self)._run_query(sql)
     
-    # Run query
+    def __subset_types_dict(self, types_dict, columns):
+        return super(Table, self)._subset_types_dict(types_dict, columns)
+
     def __create_temp_table(self, types_dict, id_col, columns):
         return super(Table, self)._create_temp_table(types_dict, id_col, columns)
     
@@ -310,7 +326,7 @@ class Table(Database):
         series = series.apply(replace_chars)  
         
         if not update:
-            warning.warn('No changes made. Set "update=False" to run query on database.')
+            warnings.warn('No changes made. Set "update=True" to run query on database.')
             return series.apply(replace_chars)
         
         else:
@@ -444,12 +460,59 @@ class Table(Database):
     def update_values(self, data, id_col, types_dict, columns=None, sep=','):
         
         columns = self.get_names().tolist() if not columns else [id_col] + columns
+        
+        if data.columns.tolist() != columns:
+                self.add_columns_from_data(data)
+        
         params = {"id_col":id_col, "columns":columns}
         
         self.__create_temp_table(types_dict=types_dict, **params) \
                         ._copy_from_dataframe(data=data, **params) \
                         ._update_from_temp(**params)
         
-                
-####Update types
+    
+    # Updates column types in PostgreSQL database
+    def update_types(self, types_dict, columns=None):
+
+        types_dict, columns = self.__subset_types_dict(types_dict, columns)
         
+        # Define SQL update queries
+        sql_alter_table = "ALTER TABLE public.{}\n\t".format(self.table)
+
+        # Update types
+        sql_update_types = []
+        
+        for column, col_type in types_dict.items():
+            if "DATE" in col_type.upper():
+                sql_string = "ALTER {column} TYPE {col_type} USING {column}::" + "{col_type},\n\t"
+            elif "INT" in col_type.upper() or "NUM" in col_type.upper():
+                sql_string = "ALTER {column} TYPE {col_type} USING {column}::text::numeric::{col_type},\n\t"
+            elif "NUM" in col_type.upper():
+                sql_string = "ALTER {column} TYPE {col_type} USING {column}::text::numeric::{col_type},\n\t"
+            else:
+                sql_string = "ALTER {column} TYPE {col_type},\n\t"
+
+            sql_alter_column = sql_string.format(column=column, col_type=col_type)
+            sql_update_types.append(sql_alter_column)
+
+        # Join strings to create full sql query
+        sql_update_types = sql_alter_table + ''.join(sql_update_types)
+
+        # Replace very last character with ";"
+        sql = sql_update_types[:-3] + ";"
+
+        self.__run_query(sql)
+            
+        return 
+
+
+#### Data class ####
+
+# equal to table.fetch()
+# convert functions into methods, create_full_address, geocode etc
+# def __init__(self, data):
+#     self.fetch_data(data)
+
+# # Inherit from Table
+# def fetch_data(self, data):
+#     self.data = pd.read_csv(data)

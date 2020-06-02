@@ -34,7 +34,7 @@ def create_full_address(data):
 def split_lat_long(data):
     
     # Check that there are no more missing coordinates before proceeding
-    if data['latitude_longitude'].notnull().any(): 
+    if data['latitude_longitude'].isnull().any(): 
         raise AssertionError("Missing coordinates must be geocoded.")
 
     # Split latitude_longitude into separate columns and convert to float values: latitude, longitude
