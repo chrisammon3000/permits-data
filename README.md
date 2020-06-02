@@ -6,11 +6,11 @@ ETL pipeline for construction permit data in Los Angeles county, USA.
 ## Pipeline Overview
 The pipeline initializes a PostgreSQL database instance running inside a Docker container and loads raw construction permit data from a csv file in order to prepare it for analysis and modeling. Everything can be run with a single command `make data`. The steps are broken down as follows:
 
-1) Fetch data: `make fetch`
+1) Download data: `make fetch`
 2) Start container: `make start_db`
-3) Load raw data into database using COPY and update column names: `make load_db`
-4) Extract the raw data and transform columns: `make transform_data`
-5) Update the database with the transformed columns: `make update_db`
+3) Load raw data into PostgreSQL table using COPY and standardize table names: `make load_db`
+4) Extract the raw data and transform: `make transform_data`
+5) Update the table with the transformed data: `make update_db`
 
 ## Getting Started
 Clone the directory:

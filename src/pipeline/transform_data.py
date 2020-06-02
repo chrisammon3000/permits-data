@@ -4,6 +4,7 @@ from pathlib import Path
 sys.path[0] = str(Path(__file__).resolve().parents[2]) # Set path for modules
 import logging
 from dotenv import load_dotenv, find_dotenv
+import numpy as np
 import pandas as pd
 pd.options.mode.chained_assignment = None  # default='warn'; turn off SettingWithCopyWarning
 
