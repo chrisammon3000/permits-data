@@ -8,6 +8,7 @@ import pandas as pd
 import psycopg2
 import warnings
 from io import StringIO
+from src.pipeline.dictionaries import types_dict, replace_map
 
 # if modulename not in sys.modules: print...
 load_dotenv(find_dotenv());
@@ -135,15 +136,21 @@ class Database():
     def _create_temp_table(self, types_dict, id_col, columns=None):
         
         types_dict, _ = self._subset_types_dict(types_dict, columns)
+
+        print("\n\n_create_temp_table\n\n",types_dict)
         
         # Append id_col to selected columns
         columns = None if not columns else [id_col] + columns
+
+        print(columns)
         
         # CREATE TABLE query
         tmp_table = "tmp_" + self.table
         
         # Subsets types_dict by columns argument and formats into string if no columns are specified
         names = ',\n\t'.join(['{key} {val}'.format(key=key, val=val) for key, val in types_dict.items()])
+
+        print(names)
         
         # Build queries
         sql = 'DROP TABLE IF EXISTS {tmp_table};\n\n'.format(tmp_table=tmp_table)
@@ -151,7 +158,9 @@ class Database():
                                 .format(tmp_table=tmp_table, names=names)
         
         # Execute query
-        self._run_query(sql)
+        #self._run_query(sql)
+
+        print(sql)
         
         return self
     
@@ -408,24 +417,29 @@ class Table(Database):
             except Exception as e:
                 print("Error:", e)
             
-            columns = data.columns.tolist() if not columns else columns
-            temp_table = "tmp_" + self.table
-            data_buffer = StringIO(data.to_csv(header=False, index=False, sep=','))
+        #print("DATAFRAME:\n", data.columns.tolist())
+        #print("TABLE:\n", self.get_names().tolist())
 
-            try:
-                cur = con.cursor()
-                data_buffer.read()
-                cur.copy_from(file=data_buffer, table=temp_table, columns=columns)
-                data_buffer.close()
-                con.commit()
-                cur.close()
-                print('Copy successful on table "{}".'.format(self.table))
-            except Exception as e:
-                con.rollback()
-                print("Error:", e)
-            finally:
-                if con is not None:
-                    con.close()
+        columns = data.columns.tolist() if not columns else columns
+        temp_table = "tmp_" + self.table
+        data_buffer = StringIO(data.to_csv(header=False, index=False, sep=','))
+
+        print("\n\nCopying...\n\n")
+
+        # try:
+        #     cur = con.cursor()
+        #     data_buffer.read()
+        #     cur.copy_from(file=data_buffer, table=temp_table, columns=columns)
+        #     data_buffer.close()
+        #     con.commit()
+        #     cur.close()
+        #     print('Copy successful on table "{}".'.format(self.table))
+        # except Exception as e:
+        #     con.rollback()
+        #     print("Error:", e)
+        # finally:
+        #     if con is not None:
+        #         con.close()
                 
         return self
                 
@@ -451,8 +465,10 @@ class Table(Database):
         sql = sql_update + sql_set + sql_from + sql_drop
         
         # Execute query
-        self.__run_query(sql)
+        #self.__run_query(sql)
         
+        print(sql)
+
         return self
         
                 
@@ -465,6 +481,8 @@ class Table(Database):
                 self.add_columns_from_data(data)
         
         params = {"id_col":id_col, "columns":columns}
+
+        print("\n\nupdate_values:\n\n",types_dict)
         
         self.__create_temp_table(types_dict=types_dict, **params) \
                         ._copy_from_dataframe(data=data, **params) \
