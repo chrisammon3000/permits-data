@@ -99,3 +99,6 @@ base-requirements.txt
 /postgres/pgdata
 /utils
 /postgres/sql/*.sql
+/src/build_features/
+/src/models/
+/src/visualization/
