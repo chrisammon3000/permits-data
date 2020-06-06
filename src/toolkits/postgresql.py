@@ -6,6 +6,7 @@ from dotenv import load_dotenv, find_dotenv
 import numpy as np
 import pandas as pd
 import psycopg2
+import csv
 import warnings
 from io import StringIO
 from src.pipeline.dictionaries import types_dict, replace_map
@@ -127,40 +128,50 @@ class Database():
     
     def _subset_types_dict(self, types_dict, columns):
         
+        #print("\n\n\n\n_subset_types_dict INPUT:\n", types_dict, "\n\n")
+
         types_dict = types_dict if not columns else {key:value for key, value in types_dict.items() if key in set(columns)}
         columns = self.get_names().tolist() if not columns else columns
+
+        #print("\n\n_subset_types_dict RETURN:\n", types_dict, "\n\n", columns, "\n\n\n\n")
         
         return types_dict, columns
     
 
     def _create_temp_table(self, types_dict, id_col, columns=None):
         
-        types_dict, _ = self._subset_types_dict(types_dict, columns)
-
-        print("\n\n_create_temp_table\n\n",types_dict)
+        #print("\n\n_create_temp_table INPUT to _subset_types_dict:\n\n",types_dict, "\n\n", columns, "\n\n")
         
         # Append id_col to selected columns
         columns = None if not columns else [id_col] + columns
 
-        print(columns)
-        
         # CREATE TABLE query
         tmp_table = "tmp_" + self.table
+
+        #types_dict, _ = self._subset_types_dict(types_dict, columns)
+
+        #print("\n\n_create_temp_table columns arg INPUT:\n\n", columns, "\n\n")
         
         # Subsets types_dict by columns argument and formats into string if no columns are specified
-        names = ',\n\t'.join(['{key} {val}'.format(key=key, val=val) for key, val in types_dict.items()])
+        #names = ',\n\t'.join(['{key} {val}'.format(key=key, val=val) for key, val in types_dict.items()])
 
-        print(names)
+        #print("TEMP TABLE:\n", names)
         
         # Build queries
-        sql = 'DROP TABLE IF EXISTS {tmp_table};\n\n'.format(tmp_table=tmp_table)
-        sql = sql + 'CREATE TABLE {tmp_table} (\n\t{names}\n);\n\n' \
-                                .format(tmp_table=tmp_table, names=names)
-        
-        # Execute query
-        #self._run_query(sql)
+        #sql = 'DROP TABLE IF EXISTS {tmp_table};\n\n'.format(tmp_table=tmp_table)
+        #sql = sql + 'CREATE TABLE {tmp_table} (\n\t{names}\n);\n\n' \
+                                #.format(tmp_table=tmp_table, names=names)
 
-        print(sql)
+        sql = """
+        DROP TABLE IF EXISTS {tmp_table};
+        CREATE TABLE {tmp_table} AS (SELECT * FROM {table}) WITH NO DATA;
+        """.format(tmp_table=tmp_table, table=self.table)
+
+
+        # Execute query
+        self._run_query(sql)
+
+        print("TEMP TABLE:\n", sql)
         
         return self
     
@@ -410,30 +421,53 @@ class Table(Database):
     
     def _copy_from_dataframe(self, data, id_col, columns=None):
         
+        temp_table = "tmp_" + self.table
+
+        match = self._match_column_order(data)
+
+        print("\n\nNEEDS MATCH? ", match)
+
         if self._match_column_order(data):
+            # Get columns from database as list
+            db_columns = self.get_names().tolist()
+            print("DB COLUMNS:\n", db_columns)
+            # Select columns from dataframe as list
+            data_columns = data.columns.tolist()
+            print("DATA COLUMNS:\n", db_columns)
+            data = data[db_columns]
+            print("MATCHED!!\n")
+            print(data.columns)
+
         
-            try:
-                con = self.__connect()
-            except Exception as e:
-                print("Error:", e)
+        try:
+            con = self.__connect()
+        except Exception as e:
+            print("Connection Error:", e)
             
         #print("DATAFRAME:\n", data.columns.tolist())
         #print("TABLE:\n", self.get_names().tolist())
 
         columns = data.columns.tolist() if not columns else columns
-        temp_table = "tmp_" + self.table
-        data_buffer = StringIO(data.to_csv(header=False, index=False, sep=','))
 
-        print("\n\nCopying...\n\n")
+        dataStream = StringIO()
+        data.to_csv(dataStream, index=False, header=True, sep=',')
+        dataStream.seek(0)
+
+        #print("\n\n_copy_from_dataframe: Copying...\n\n")
+        #print("\n\n_copy_from_dataframe: --> data_buffer:\n\n", dataStream)
+
+        sql = """
+        COPY {tmp_table} FROM STDIN WITH (FORMAT CSV, HEADER TRUE);
+        """.format(tmp_table=tmp_table)
 
         # try:
-        #     cur = con.cursor()
-        #     data_buffer.read()
-        #     cur.copy_from(file=data_buffer, table=temp_table, columns=columns)
-        #     data_buffer.close()
-        #     con.commit()
-        #     cur.close()
-        #     print('Copy successful on table "{}".'.format(self.table))
+        cur = con.cursor()
+        print("\n\n_copy_from_dataframe: --> dataStream:\n\n")
+        #cur.copy_from(file=dataStream, table=temp_table, columns=columns, sep=',')
+        cur.copy_expert(sql, dataStream)
+        con.commit()
+        cur.close()
+        print('Copy successful on table "{}".'.format(self.table))
         # except Exception as e:
         #     con.rollback()
         #     print("Error:", e)
@@ -464,29 +498,33 @@ class Table(Database):
                 
         sql = sql_update + sql_set + sql_from + sql_drop
         
-        # Execute query
-        #self.__run_query(sql)
-        
         print(sql)
 
+        # Execute query
+        self.__run_query(sql)
+        
         return self
         
                 
     # Builds a query to update postgres from a csv file
     def update_values(self, data, id_col, types_dict, columns=None, sep=','):
         
-        columns = self.get_names().tolist() if not columns else [id_col] + columns
-        
+        print(data.dtypes)
+
         if data.columns.tolist() != columns:
                 self.add_columns_from_data(data)
+                self.update_types(types_dict=types_dict, columns=columns)        
         
-        params = {"id_col":id_col, "columns":columns}
+        columns = self.get_names().tolist() if not columns else [id_col] + columns
+        
+        column_params = {"id_col":id_col, "columns":columns}
 
-        print("\n\nupdate_values:\n\n",types_dict)
+        #print("\n\nupdate_values --> types_dict:\n\n",types_dict)
+        #print("\n\nupdate_values --> columns:\n\n",columns)
         
-        self.__create_temp_table(types_dict=types_dict, **params) \
-                        ._copy_from_dataframe(data=data, **params) \
-                        ._update_from_temp(**params)
+        self.__create_temp_table(types_dict=types_dict, **column_params) \
+                        ._copy_from_dataframe(data=data, **column_params) #\
+                        #._update_from_temp(**column_params)
         
     
     # Updates column types in PostgreSQL database

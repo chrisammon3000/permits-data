@@ -19,7 +19,7 @@ GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
 GOOGLE_AGENT = os.getenv("permits-data")
 
 # Create helper function to geocode missing latitude_longitude values
-def geocode(address, key, agent, timeout=5):
+def geocode(address, key, agent, timeout=10):
 
     """
     Uses GoogleMaps API to batch geocode address strings to lat/long coordinates. RateLimiter is to 
@@ -74,7 +74,11 @@ def geocode_from_address(data):
         print("No missing coordinates.")
         return data
 
+    print("BEFORE UPDATE:\n", data.dtypes)
+
     # Update dataframe
-    data.update(data_missing)
+    data.update(data_missing, overwrite=False)
+
+    print("AFTER:\n", data.dtypes)
 
     return
