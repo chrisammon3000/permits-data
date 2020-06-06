@@ -43,6 +43,7 @@ def split_lat_long(data):
                             .astype(float).rename(columns={0: "latitude", 1: "longitude"})
 
         # Add to original data
+        ### Add drop duplicate columns
         return pd.concat([data, lat_long_series], axis=1)
     
     else:

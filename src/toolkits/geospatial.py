@@ -30,8 +30,8 @@ def geocode(address, key, agent, timeout=10):
 
     if address:
         # Instantiates GoogleMaps geocoder
-        geolocator = GoogleV3(api_key=GOOGLE_API_KEY or key, 
-                                user_agent=GOOGLE_AGENT or agent, 
+        geolocator = GoogleV3(api_key=key or key, 
+                                user_agent=agent or agent, 
                                 timeout=timeout)
 
         # Adds Rate Limiter to space out requests
@@ -44,7 +44,7 @@ def geocode(address, key, agent, timeout=10):
         return np.nan
 
 # Takes addresses and outputs coordinates
-def geocode_from_address(data):
+def geocode_from_address(data, key=None, agent=None):
     
     # Extract rows missing in latitude_longitude
     data_missing = data[data['latitude_longitude'].isnull()==1]
@@ -58,15 +58,15 @@ def geocode_from_address(data):
 
     # Google Maps environment variables
     load_dotenv(find_dotenv());
-    GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
-    GOOGLE_AGENT = os.getenv("GOOGLE_AGENT")
+    key = os.getenv("GOOGLE_API_KEY") or key
+    agent = os.getenv("GOOGLE_AGENT") or agent
 
     # Geocode missing coordinates using full addresses
     if len(data_missing) > 0:
         try:
             print("Geocoding...")
-            data_missing.loc[:, 'latitude_longitude'] = data_missing['full_address'].apply(geocode, args=(GOOGLE_API_KEY,
-                                                                                                    GOOGLE_AGENT))
+            data_missing.loc[:, 'latitude_longitude'] = data_missing['full_address'].apply(geocode, args=(key,
+                                                                                                    agent))
             print("{} locations were assigned coordinates.".format(num_missing))
         except Exception as e:
             print("Error:\n", e)
@@ -74,11 +74,7 @@ def geocode_from_address(data):
         print("No missing coordinates.")
         return data
 
-    print("BEFORE UPDATE:\n", data.dtypes)
-
     # Update dataframe
     data.update(data_missing, overwrite=False)
-
-    print("AFTER:\n", data.dtypes)
 
     return
