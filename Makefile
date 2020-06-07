@@ -58,15 +58,9 @@ load_db: start_db
 	@echo "### Loading PostgreSQL Database... ###"
 	@scripts/load_db.sh
 	@echo "Database is loaded."
-
-## Process raw data
-transform_data: load_db ##update_db
-	@echo "### Transforming Data... ###"
-	#@$(PYTHON_INTERPRETER) src/pipeline/transform_data.py
-	@echo "Finished."
 	
 ## Load cleaned data
-data: transform_data
+data: load_db
 	@echo "### Updating PostgreSQL Database... ###"
 	@$(PYTHON_INTERPRETER) src/pipeline/run.py
 	@echo "### End Pipeline ###"

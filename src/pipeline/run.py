@@ -15,34 +15,26 @@ from src.toolkits.geospatial import geocode_from_address
 from src.toolkits.postgresql import Database, Table
 from src.toolkits.eda import explore_value_counts
 
-
 def main():
+    
+    permits_raw = Table(name="permits_raw")
+    permits_raw.format_table_names(replace_map=replace_map, update=True)
+    permits_raw.update_types(types_dict)
+    data = permits_raw.fetch_data()
+    data = create_full_address(data)
+    geocode_from_address(data)
+    data = split_lat_long(data)
+    permits_raw.update_values(data=data, id_col="pcis_permit_no", types_dict=types_dict)
 
     return
 
-    if __name__ == '__main__':
 
-        # not used in this stub but often useful for finding various files
+if __name__ == '__main__':
 
-        # find .env automagically by walking up directories until it's found, then
-        # load up the .env entries as environment variables
-        #load_dotenv(find_dotenv())
+    # not used in this stub but often useful for finding various files
 
-        print(types_dict)
+    # find .env automagically by walking up directories until it's found, then
+    # load up the .env entries as environment variables
+    #load_dotenv(find_dotenv())
 
-        print("Initializing table...")
-        permits_raw = Table(name="permits_raw")
-        print("Update names...")
-        permits_raw.format_table_names(replace_map=replace_map, update=True)
-        print("Update types...")
-        permits_raw.update_types(types_dict)
-        print("Fetching...")
-        data = permits_raw.fetch_data()
-
-        data = create_full_address(data)
-        print("Geocoding...")
-        geocode_from_address(data)
-
-        data = split_lat_long(data)
-        print("Updating...")
-        permits_raw.update_values(data=data, id_col="pcis_permit_no", types_dict=types_dict)
+    main()
