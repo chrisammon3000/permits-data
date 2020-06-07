@@ -42,10 +42,6 @@ check_env:
 	@if [ -z "$$CONTAINER" ]; then echo "Error: Missing environment variables. To set them first run:" \
 		&& echo "set -o allexport; source .env; set +o allexport;" && exit 1; fi
 
-## Fetch data
-##fetch: check_env
-	##@scripts/fetch_data.sh
-
 ## Start Postgres
 start_db: check_env
 	@echo "### Starting Docker... ###"
@@ -79,8 +75,6 @@ clear_db: stop_db
 	@sudo rm -rf ./postgres/pgdata/
 	@echo "Database deleted."
 
-	#bash scripts/stop_db.sh
-
 ## Remove db container
 clear_docker: clear_db
 	@echo "### Removing Container... ###"
@@ -90,17 +84,12 @@ clear_docker: clear_db
 
 ## Removes deletes db and cleans up project files, keeps downloaded data
 tear_down: check_env clear_docker clean
-	## Add warning, deletes all data #
 	@echo "Tear down complete."
 
 ## Install Python Dependencies
 requirements: test_environment
 	$(PYTHON_INTERPRETER) -m pip install -U pip setuptools wheel
 	$(PYTHON_INTERPRETER) -m pip install -r requirements.txt
-
-## Make Dataset
-# data: requirements
-# 	$(PYTHON_INTERPRETER) src/data/make_dataset.py data/raw data/processed
 
 ## Delete all compiled Python files
 clean:
