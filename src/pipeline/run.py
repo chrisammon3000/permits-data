@@ -15,16 +15,16 @@ from src.toolkits.geospatial import geocode_from_address
 from src.toolkits.postgresql import Database, Table
 from src.toolkits.eda import explore_value_counts
 
-def main():
-    
-    permits_raw = Table(name="permits_raw")
+def main(name=None, id_col=None, replace_map=replace_map, types_dict=types_dict):
+
+    permits_raw = Table(name=name, id_col=id_col)
     permits_raw.format_table_names(replace_map=replace_map, update=True)
-    permits_raw.update_types(types_dict)
+    permits_raw.update_types(types_dict=types_dict)
     data = permits_raw.fetch_data()
     data = create_full_address(data)
     geocode_from_address(data)
     data = split_lat_long(data)
-    permits_raw.update_values(data=data, id_col="pcis_permit_no", types_dict=types_dict)
+    permits_raw.update_values(data=data, id_col=id_col, types_dict=types_dict)
 
     return
 
@@ -37,4 +37,6 @@ if __name__ == '__main__':
     # load up the .env entries as environment variables
     #load_dotenv(find_dotenv())
 
-    main()
+    params = {"name": "permits_raw", "id_col": "pcis_permit_no", "replace_map": replace_map, "types_dict": types_dict}
+
+    main(**params)

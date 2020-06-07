@@ -74,7 +74,7 @@ class Database():
                 con.close()
                 
                 
-    def _run_query(self, sql):
+    def _run_query(self, sql, msg=None):
         
         try:
             con = self._connect()
@@ -86,7 +86,8 @@ class Database():
             cur.execute(sql)
             con.commit()
             cur.close()
-            print('Query successful on database "{}".'.format(self.dbname))
+            #print('Query successful on database "{db}": {msg}'.format(db=self.dbname, msg=msg))
+            print(msg)
         except Exception as e:
             con.rollback()
             print("Error:", e)
@@ -111,7 +112,7 @@ class Database():
                             .format(table_name=table_name, names=names) # + sql
         
         # Execute query
-        self._run_query(sql)
+        self._run_query(sql, msg='Created table "{name}" in database "{dbname}".'.format(name=table_name, dbname=self.dbname))
         
         return self
     
@@ -122,7 +123,7 @@ class Database():
         sql = 'DROP TABLE IF EXISTS {table_name};\n\n'.format(table_name=table_name)
         
         # Execute query
-        self._run_query(sql)
+        self._run_query(sql, msg="Dropped table {}.".format(table_name))
         
         return self
     
@@ -150,7 +151,7 @@ class Database():
 
 
         # Execute query
-        self._run_query(sql)
+        self._run_query(sql, msg='Created temporary table "{}".'.format(tmp_table))
         
         return self
     
@@ -172,6 +173,7 @@ class Database():
             print("Error:", e)
             
         results = cur.fetchall()
+        cur.close()
         
         tables = []
         
@@ -184,12 +186,13 @@ class Database():
 #### Table class ####
 
 class Table(Database):
-    def __init__(self, name, user="postgres", password="postgres",
+    def __init__(self, name, id_col, user="postgres", password="postgres",
                  dbname=None, host="localhost", port=5432):
         
         super().__init__(user, password, dbname, host, port)
         
         self.table = name
+        self.id_col = id_col
         
         # Loaded from .env if not explicit
         self.user = os.getenv("POSTGRES_USER") or user
@@ -209,8 +212,8 @@ class Table(Database):
         return super(Table, self)._con
     
     # Run query
-    def __run_query(self, sql):
-        return super(Table, self)._run_query(sql)
+    def __run_query(self, sql, msg):
+        return super(Table, self)._run_query(sql, msg)
     
     def __subset_types_dict(self, types_dict, columns):
         return super(Table, self)._subset_types_dict(types_dict, columns)
@@ -347,10 +350,10 @@ class Table(Database):
             return series.apply(replace_chars)
         
         else:
-            sql_query = self._update_table_names(series=series)
+            sql = self._update_table_names(series=series)
             
             # Execute query
-            self.__run_query(sql_query)
+            self.__run_query(sql, msg='Updated names in "{}".'.format(self.table))
             
             return self
                     
@@ -383,7 +386,7 @@ class Table(Database):
         sql = ''.join(sql_query)[:-2] + ";"
 
         # Execute query
-        self.__run_query(sql)
+        self.__run_query(sql, msg='Added new columns to "{name}":\n{cols}'.format(name=self.table, cols=new_names))
         
         return self
     
@@ -399,8 +402,8 @@ class Table(Database):
         
         if set(data_columns) == set(db_columns):
             if data_columns != db_columns:
-                print('Rearranged dataframe columns to match table "{}".'.format(self.table))
-                data = data[db_columns]
+                print('Dataframe columns do not match table "{}".'.format(self.table))
+                #data = data[db_columns]
                 return True
             else:
                 print('Dataframe columns already match table "{}".'.format(self.table))
@@ -422,13 +425,14 @@ class Table(Database):
 
         match = self._match_column_order(data)
 
-        if self._match_column_order(data):
+        if match:
             # Get columns from database as list
             db_columns = self.get_names().tolist()
             
             # Select columns from dataframe as list
             data_columns = data.columns.tolist()
             data = data[db_columns]
+            print('Rearranged dataframe columns to match "{}".'.format(self.table))
 
         try:
             con = self.__connect()
@@ -482,7 +486,7 @@ class Table(Database):
         sql = sql_update + sql_set + sql_from + sql_drop
 
         # Execute query
-        self.__run_query(sql)
+        self.__run_query(sql, msg='Updated values in "{}".'.format(self.table))
         
         return self
         
@@ -534,7 +538,7 @@ class Table(Database):
         # Replace very last character with ";"
         sql = sql_update_types[:-3] + ";"
 
-        self.__run_query(sql)
+        self.__run_query(sql, msg='Updated types in "{}".'.format(self.table))
             
         return 
 

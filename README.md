@@ -8,9 +8,8 @@ The pipeline initializes a PostgreSQL database instance running inside a Docker 
 
 1) Download data: `make fetch`
 2) Start container: `make start_db`
-3) Load raw data into PostgreSQL table using COPY and standardize table names: `make load_db`
-4) Extract the raw data and transform: `make transform_data`
-5) Update the table with the transformed data: `make update_db`
+3) Load raw data into table using COPY, standardize table names and update types: `make load_db`
+4) Extract the raw data, transform, and update: `make data`
 
 ## Getting Started
 Clone the directory:
