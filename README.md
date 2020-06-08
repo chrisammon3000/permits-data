@@ -23,6 +23,8 @@ The pipeline performs the following steps in order to prepare the data for analy
 2) Acquire an [API key for Google Maps](https://developers.google.com/maps/documentation/geocoding/get-api-key). It may be necessary to set up a developer account.
 3) Check that the .env file is correct:
    ```
+   ### .env
+
    # PostgreSQL
    REPO=permits-data
    CONTAINER=postgres_db

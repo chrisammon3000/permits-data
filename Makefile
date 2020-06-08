@@ -1,4 +1,6 @@
-.PHONY: clean data lint requirements sync_data_to_s3 sync_data_from_s3
+.PHONY: clean data lint requirements delete_env create_env check_env check_directory fetch_data start_db
+	load_db data stop_db clear_db clear_docker tear_down
+
 
 #################################################################################
 # GLOBALS                                                                       #
@@ -12,12 +14,6 @@ PYTHON_INTERPRETER = python3
 SHELL=/bin/bash
 CONDAROOT=/Users/gregory/anaconda3
 export CONDA_ENV=permits-data-env
-
-ifeq (,$(shell which conda))
-HAS_CONDA=False
-else
-HAS_CONDA=True
-endif
 
 #################################################################################
 # COMMANDS                                                                      #
@@ -35,7 +31,7 @@ create_env: delete_env
 	&& conda env create -f environment.yml \
 	&& conda deactivate
 
-## Check environment variables
+## Validate environment
 check_env:
 	@echo "### Validating environment... ###"
 	@if [[ "$$CONDA_DEFAULT_ENV" != "$$CONDA_ENV" ]]; then \
@@ -44,29 +40,30 @@ check_env:
 	@if [ -z "$$CONTAINER" ]; then echo "Error: Missing environment variables. To set them first run:" \
 		&& echo "set -o allexport; source .env; set +o allexport;"; else echo "Environment variables ready."; fi
 
-## Create data directory if not present
+## Create data directory
 check_directory: 
 	@if [ ! -d "./data" ]; then mkdir -p data/{interim,processed,raw}; fi
 
+## Download data
 fetch_data: check_directory
 	@if [ ! -f "$$PWD/data/raw/permits_raw.csv" ]; then echo "Downloading data..." \
 		&& curl $$DATA_URL > $(PWD)/data/raw/permits_raw.csv; fi
 	@echo "Data is ready."
 
-## Start Postgres
+## Start PostgreSQL
 start_db: check_env check_directory
 	@echo "### Starting Docker... ###"
 	@scripts/run_postgres.sh
 	@echo "### Waiting for PostgreSQL... ###"
 	@scripts/test_connection.sh
 
-## Load data
+## Load raw data
 load_db: start_db
 	@echo "### Loading PostgreSQL Database... ###"
 	@scripts/load_db.sh
 	@echo "Database is loaded."
 	
-## Load cleaned data
+## Run pipeline
 data: load_db
 	@echo "### Updating PostgreSQL Database... ###"
 	@$(PYTHON_INTERPRETER) src/pipeline/run.py
@@ -78,7 +75,7 @@ stop_db:
 	@echo "Container stopped:"
 	@docker stop $(CONTAINER) ||:
 
-## Delete ./postgres/pgdata folder and contents
+## Delete pgdata folder
 clear_db: stop_db
 	@echo "### Deleting PostgreSQL Database... ###"
 	@echo 'Removing files in ./postgres/pgdata/ ...'
@@ -86,14 +83,14 @@ clear_db: stop_db
 	@sudo rm -rf ./postgres/pgdata/
 	@echo "Database deleted."
 
-## Remove db container
+## Remove PostgreSQL container
 clear_docker: clear_db
 	@echo "### Removing Container... ###"
 	@echo "Container removed:"
 	@docker rm $(CONTAINER)
 	@echo "Done."
 
-## Removes deletes db and cleans up project files, keeps downloaded data
+## Removes up project files, keeps downloads
 tear_down: check_env clear_docker clean
 	@echo "Tear down complete."
 
