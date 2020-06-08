@@ -1,20 +1,30 @@
 permits-data
 ==============================
 
-ETL pipeline for construction permit data in Los Angeles county, USA.
+ETL pipeline for construction permit data in Los Angeles county, USA using bash, Python and PostgreSQL.
+
+## Built With
+The pipeline is built on these frameworks and platforms:
+* [psycopg2](https://pypi.org/project/psycopg2/)
+* [pandas](https://pandas.pydata.org/)
+* [Google Maps Platform](https://developers.google.com/maps/documentation) ([Geocoding API](https://developers.google.com/maps/documentation/geocoding/start))
+* [Cookiecutter Data Science](https://drivendata.github.io/cookiecutter-data-science/)
+* [PostgreSQL](https://www.postgresql.org/)
+* [Docker](https://docs.docker.com/get-docker/)
+* [GNU Make](https://www.gnu.org/software/make/)
 
 ## Pipeline Overview
-The pipeline initializes a PostgreSQL database instance running inside a Docker container and loads raw construction permit data from a csv file in order to prepare it for analysis and modeling. Everything can be run with a single command `make data`. 
+The permits-data pipeline initializes a PostgreSQL database instance running inside a Docker container and loads raw construction permit data from a csv file. It then extracts, transforms and reloads the data to make it ready for analysis. 
 
-The pipeline performs the following steps in order to prepare the data for analysis:
-1) Starts a PostgreSQL Docker container 
-2) Loads the raw data from csv
-3) Standardizes the column names
-4) Updates the data types
-5) Concatenates address fields into a single column `full_address`
-6) Geocodes missing GPS coordinates using the `full_address`
-7) Creates separate columns for `latitude` and `longitude`
-8) Updates the database with the new values
+Everything can be run with a single command `make data` which will execute these steps:
+1) Start a PostgreSQL Docker container 
+2) Load the raw data from csv
+3) Standardize the column names
+4) Update the data types
+5) Concatenate address fields into a single column `full_address`
+6) Geocode missing GPS coordinates using the `full_address`
+7) Create separate columns for `latitude` and `longitude`
+8) Update the database with the new values
 
 ## Getting Started
 
