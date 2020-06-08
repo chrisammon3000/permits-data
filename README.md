@@ -39,7 +39,9 @@ set -o allexport; source .env; set +o allexport;
 ```
 
 ### Running the Pipeline
+
 To start and load the database, from the root directory run:
 ```
 make data
 ```
+
