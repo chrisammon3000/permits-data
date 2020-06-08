@@ -20,7 +20,26 @@ The pipeline performs the following steps in order to prepare the data for analy
 
 ### Prerequisites
 1) Install [Anaconda](https://docs.anaconda.com/anaconda/install/) package manager
-2) Acquire an [API key for Google Maps](https://developers.google.com/maps/documentation/geocoding/get-api-key)
+2) Acquire an [API key for Google Maps](https://developers.google.com/maps/documentation/geocoding/get-api-key). It may be necessary to set up a developer account.
+3) Check that the .env file is correct:
+   ```
+   # PostgreSQL
+   REPO=permits-data
+   CONTAINER=postgres_db
+   POSTGRES_USER=postgres
+   POSTGRES_PASSWORD=password
+   POSTGRES_DB=permits
+   DB_HOST=localhost
+   DB_PORT=5432
+   DATA_URL='https://data.lacity.org/api/views/yv23-pmwf/rows.csv?accessType=DOWNLOAD'
+   PG_URI="postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@${DB_HOST}:${DB_PORT}/shield"
+   PGDATA="${PWD}/postgres/pgdata"
+   DATA_DIR="${PWD}/data"
+
+   # Google Maps
+   GOOGLE_API_KEY="AIzaSyC4fTxcjqVAhrN_9ZenhkFIaJS15uctBMQ"
+   GOOGLE_AGENT="permits-data"
+   ```
 
 ### Setting up Environment
 

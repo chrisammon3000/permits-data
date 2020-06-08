@@ -11,6 +11,7 @@ PROJECT_NAME = permits-data
 PYTHON_INTERPRETER = python3
 SHELL=/bin/bash
 CONDAROOT=/Users/gregory/anaconda3
+export CONDA_ENV=permits-data-env
 
 ifeq (,$(shell which conda))
 HAS_CONDA=False
@@ -25,7 +26,7 @@ endif
 ## Delete Conda environment
 delete_env:
 	@source $(CONDAROOT)/bin/activate
-	@conda env remove --name permits-data-env
+	@conda env remove --name $(CONDA_ENV)
 
 ## Create Conda environment
 create_env: delete_env
@@ -36,15 +37,20 @@ create_env: delete_env
 
 ## Check environment variables
 check_env:
-	@if [[ "$$CONDA_DEFAULT_ENV" != "permits-data-env" ]]; then \
+	@if [[ "$$CONDA_DEFAULT_ENV" != "$$CONDA_ENV" ]]; then \
 		echo "Error: Environment not active. To activate run:" \
-		&& echo "conda activate permits-data-env" && exit 1; fi
+		&& echo "conda activate $(CONDA_ENV)"; else echo "Conda environment ready."; fi
 	@if [ -z "$$CONTAINER" ]; then echo "Error: Missing environment variables. To set them first run:" \
-		&& echo "set -o allexport; source .env; set +o allexport;" && exit 1; fi
+		&& echo "set -o allexport; source .env; set +o allexport;"; else echo "Environment variables ready."; fi
 
 ## Create data directory if not present
 check_directory: 
 	@if [ ! -d "./data" ]; then mkdir -p data/{interim,processed,raw}; fi
+
+fetch_data: check_directory
+	@if [ ! -f "$$PWD/data/raw/permits_raw.csv" ]; then echo "Downloading data..." \
+		&& curl $$DATA_URL > $(PWD)/data/raw/permits_raw.csv; fi
+	@echo "Data is ready."
 
 ## Start Postgres
 start_db: check_env check_directory
@@ -143,12 +149,6 @@ endif
 ## Test python environment is setup correctly
 test_environment:
 	$(PYTHON_INTERPRETER) test_environment.py
-
-#################################################################################
-# PROJECT RULES                                                                 #
-#################################################################################
-
-
 
 #################################################################################
 # Self Documenting Commands                                                     #
