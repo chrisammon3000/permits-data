@@ -36,9 +36,9 @@ The pipeline performs the following steps in order to prepare the data for analy
    PGDATA="${PWD}/postgres/pgdata"
    DATA_DIR="${PWD}/data"
 
-   # Google Maps
-   GOOGLE_API_KEY="AIzaSyC4fTxcjqVAhrN_9ZenhkFIaJS15uctBMQ"
-   GOOGLE_AGENT="permits-data"
+   # Google Maps API
+   GOOGLE_API_KEY="<your api key>"
+   GOOGLE_AGENT="permits-data" # or the GCP Project ID used when creating the API key
    ```
 
 ### Setting up Environment
