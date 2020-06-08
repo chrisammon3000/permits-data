@@ -20,8 +20,9 @@ The pipeline performs the following steps in order to prepare the data for analy
 
 ### Prerequisites
 1) Install [Anaconda](https://docs.anaconda.com/anaconda/install/) package manager
-2) Acquire an [API key for Google Maps](https://developers.google.com/maps/documentation/geocoding/get-api-key). It may be necessary to set up a developer account.
-3) Check that the .env file is correct:
+2) Install [Docker](https://docs.docker.com/get-docker/)
+3) Acquire an [API key for Google Maps](https://developers.google.com/maps/documentation/geocoding/get-api-key). It may be necessary to set up a developer account.
+4) Check that the .env file is correct:
    ```
    ### .env
 

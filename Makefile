@@ -33,10 +33,10 @@ create_env: delete_env
 
 ## Validate environment
 test_environment:
-	$(PYTHON_INTERPRETER) test_environment.py
 	@echo "### Validating environment... ###"
+	@$(PYTHON_INTERPRETER) test_environment.py
 	@if [[ "$$CONDA_DEFAULT_ENV" != "$$CONDA_ENV" ]]; then \
-		echo "Error: Environment not active. To activate run:" \
+		echo "Error: Environment not active. Create it or to activate run:" \
 		&& echo "conda activate $(CONDA_ENV)"; else echo "Conda environment ready."; fi
 	@if [ -z "$$CONTAINER" ]; then echo "Error: Missing environment variables. To set them first run:" \
 		&& echo "set -o allexport; source .env; set +o allexport;"; else echo "Environment variables ready."; fi

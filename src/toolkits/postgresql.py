@@ -62,7 +62,6 @@ class Database():
 
     """
 
-
     def __init__(self, user="postgres", password="postgres",
                  dbname=None, host="localhost", port=5432):
 
@@ -72,7 +71,6 @@ class Database():
         self.dbname = os.getenv("POSTGRES_DB") or dbname
         self.host = os.getenv("DB_HOST") or host
         self.port = os.getenv("DB_PORT") or port
-        
         
     def _connect(self):
 
@@ -127,7 +125,6 @@ class Database():
             if con is not None:
                 con.close()
                 
-                
     def _run_query(self, sql, msg=None):
         """
         Runs internal queries.
@@ -152,7 +149,6 @@ class Database():
         
         return
 
-    
     def create_table(self, table_name, types_dict, id_col, columns=None):
         """
         Creates a new table. Requires name, dictionary of column names as keys
@@ -191,7 +187,6 @@ class Database():
         
         return self
     
-    
     def drop_table(self, table_name):
         """
         Drops table from database.
@@ -205,7 +200,6 @@ class Database():
         
         return self
     
-    
     def _subset_types_dict(self, types_dict, columns):
         """
         Internal method to Table class.
@@ -215,7 +209,6 @@ class Database():
         types_dict = {key:value for key, value in types_dict.items() if key in set(columns)}
         
         return types_dict, columns
-    
 
     def _create_temp_table(self, types_dict, id_col, columns=None):
         """
@@ -233,12 +226,10 @@ class Database():
         CREATE TABLE {tmp_table} AS (SELECT * FROM {table}) WITH NO DATA;
         """.format(tmp_table=tmp_table, table=self.table)
 
-
         # Execute query
         self._run_query(sql, msg='Created temporary table "{}".'.format(tmp_table))
         
         return self
-    
     
     # List tables
     def list_tables(self):
@@ -333,7 +324,6 @@ class Table(Database):
         self.port = os.getenv("DB_PORT") or port
         self.columns = self.get_names().tolist
 
-    
     # Connect to database
     def __connect(self):
         return super(Table, self)._connect()
@@ -351,7 +341,6 @@ class Table(Database):
 
     def __create_temp_table(self, types_dict, id_col, columns):
         return super(Table, self)._create_temp_table(types_dict, id_col, columns)
-    
     
     # Fetch data from sql query
     def fetch_data(self, sql=None, coerce_float=False, parse_dates=None):
@@ -381,7 +370,6 @@ class Table(Database):
 
         return data
     
-    
     # Get names of column
     def get_names(self):
         """
@@ -402,7 +390,6 @@ class Table(Database):
     
         return column_series
 
-    
     # Get types of columns, returns dict
     def get_types(self, as_dataframe=False, pandas_integers=False):
         """
@@ -460,7 +447,6 @@ class Table(Database):
         
         return types_dict
     
-    
     # Update column names in db table
     def _update_table_names(self, series):
         """
@@ -487,7 +473,6 @@ class Table(Database):
 
         return sql_query
     
-
     # Standardize column names using dictionary of character replacements
     def format_table_names(self, replace_map, update=False):
         """
@@ -524,7 +509,6 @@ class Table(Database):
             
             return self
                     
-
     # Add new columns to database
     def add_columns_from_data(self, data):
         """
@@ -566,7 +550,6 @@ class Table(Database):
         
         return self
     
-    
     # Check whether dataframe columns match database table columns before running queries
     def _match_column_order(self, data):
         """
@@ -598,7 +581,6 @@ class Table(Database):
                 print(list(set(db_columns) - set(data_columns)))
                 return False
         
-    
     def _copy_from_dataframe(self, data, id_col, columns=None):
         """
         Copies rows from dataframe into a temporary table. Automatically 
@@ -651,8 +633,7 @@ class Table(Database):
             if con is not None:
                 con.close()
                 
-        return self
-                
+        return self          
         
     def _update_from_temp(self, id_col, columns=None):
         """
@@ -681,8 +662,7 @@ class Table(Database):
         self.__run_query(sql, msg='Updated values in "{}".'.format(self.table))
         
         return self
-        
-                
+                  
     # Builds a query to update postgres from a csv file
     def update_values(self, data, id_col, types_dict, columns=None, sep=','):
         """
@@ -704,7 +684,8 @@ class Table(Database):
                         ._copy_from_dataframe(data=data, **column_params) \
                         ._update_from_temp(**column_params)
         
-    
+        return
+
     # Updates column types in PostgreSQL database
     def update_types(self, types_dict, columns=None):
         """
