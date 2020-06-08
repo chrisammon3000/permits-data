@@ -59,7 +59,7 @@ class Database():
     # Close connection
     cur.close()
     con.close()
-    
+
     """
 
 
@@ -78,7 +78,7 @@ class Database():
 
         """
         Connects to PostgreSQL database using psycopg2 driver. Same
-        arguments as psycopg2.connect().
+        arguments as psycopg2.connect(). Returns standard connection.
 
         Params
         --------
@@ -105,6 +105,16 @@ class Database():
     
     @property
     def _con(self):
+        """
+        Checks the status of a connection to database.
+
+        Example
+        -------
+        db = Database()
+
+        db._con
+
+        """
         try:
             con = self._connect()
             print('Connected as user "{}" to database "{}" on http://{}:{}.'.format(self.user,self.dbname,
@@ -119,7 +129,9 @@ class Database():
                 
                 
     def _run_query(self, sql, msg=None):
-        
+        """
+        Runs internal queries.
+        """
         try:
             con = self._connect()
         except Exception as e:
@@ -130,7 +142,6 @@ class Database():
             cur.execute(sql)
             con.commit()
             cur.close()
-            #print('Query successful on database "{db}": {msg}'.format(db=self.dbname, msg=msg))
             print(msg)
         except Exception as e:
             con.rollback()
@@ -143,6 +154,26 @@ class Database():
 
     
     def create_table(self, table_name, types_dict, id_col, columns=None):
+        """
+        Creates a new table. Requires name, dictionary of column names as keys
+        and their PostgreSQL types as values, and an id column as primary key.
+        Desired columns can be specified.
+
+        Params
+        ------
+        table_name : string
+            Name of table
+
+        types_dict : dict
+            Dictionary in form "column name": "PostgreSQL type" eg. 
+            "permit_category": "VARCHAR(50)"
+
+        id_col : string
+            Primary key of table
+
+        columns : list of strings
+            List of columns to select from types_dict
+        """
         
         # Append id_col to selected columns
         columns = None if not columns else set([id_col] + columns)
@@ -153,7 +184,7 @@ class Database():
         
         # Build queries
         sql = 'CREATE TABLE {table_name} (\n\t{names}\n);\n\n' \
-                            .format(table_name=table_name, names=names) # + sql
+                            .format(table_name=table_name, names=names)
         
         # Execute query
         self._run_query(sql, msg='Created table "{name}" in database "{dbname}".'.format(name=table_name, dbname=self.dbname))
@@ -162,7 +193,10 @@ class Database():
     
     
     def drop_table(self, table_name):
-        
+        """
+        Drops table from database.
+        """
+
         # Build queries
         sql = 'DROP TABLE IF EXISTS {table_name};\n\n'.format(table_name=table_name)
         
@@ -173,6 +207,9 @@ class Database():
     
     
     def _subset_types_dict(self, types_dict, columns):
+        """
+        Internal method to Table class.
+        """
 
         columns = self.get_names().tolist() if not columns else columns
         types_dict = {key:value for key, value in types_dict.items() if key in set(columns)}
@@ -181,6 +218,9 @@ class Database():
     
 
     def _create_temp_table(self, types_dict, id_col, columns=None):
+        """
+        Creates temporary table for update_values operation.
+        """
         
         # Append id_col to selected columns
         columns = None if not columns else [id_col] + columns
@@ -229,6 +269,54 @@ class Database():
 
 #### Table class ####
 class Table(Database):
+
+    """
+    Provides functionality for manipulating a table in a PostgreSQL database
+    and updating with transformed data from a pandas dataframe.
+
+    Methods
+    -------
+    fetch_data() --> Returns a pandas dataframe of table
+    get_names() --> Returns table column names
+    get_types() --> Returns types dictionary in form "column name": "PostgreSQL type" 
+    format_table_names() --> Standardizes column names 
+    add_columns_from_data() --> Adds new columns from a pandas dataframe
+    update_values() --> Updates rows from a pandas dataframe
+    update_types() --> Updates column types from a dictionary in form "column name": "PostgreSQL type"
+
+    Example 1: Preparing a database table
+    -------
+    from src.pipeline.dictionaries import types_dict, replace_map
+    
+    db = Database()
+
+    # Create a new table
+    db.create_table(table_name="permits_raw", types=dict=types_dict, 
+                    id_col="pcis_permit_no")
+    
+    # Set up table for ETL
+    permits_raw = Table(name=name, id_col=id_col)
+    permits_raw.format_table_names(replace_map=replace_map, update=True) # Standardize names
+    permits_raw.update_types(types_dict=types_dict) # Update datatypes
+    
+    Example 2: ETL workflow
+    --------
+    from src.pipeline.transform_data import create_full_address, split_lat_long
+    from src.toolkits.geospatial import geocode_from_address
+
+    # Extract
+    data = permits_raw.fetch_data()
+
+    # Transform
+    data = create_full_address(data)
+    geocode_from_address(data)
+    data = split_lat_long(data)
+
+    # Load
+    permits_raw.update_values(data=data, id_col=id_col, types_dict=types_dict)   
+
+    """
+
     def __init__(self, name, id_col, user="postgres", password="postgres",
                  dbname=None, host="localhost", port=5432):
         
@@ -267,6 +355,11 @@ class Table(Database):
     
     # Fetch data from sql query
     def fetch_data(self, sql=None, coerce_float=False, parse_dates=None):
+        """
+        Fetches data from PostgreSQL table. Tries to preserve NA values
+        for integers within pandas Dataframe and uses np.nan
+        for other dtypes.
+        """
         
         sql = sql or "SELECT * FROM {};".format(self.table)
         
@@ -291,6 +384,9 @@ class Table(Database):
     
     # Get names of column
     def get_names(self):
+        """
+        Returns names of columns in table.
+        """
         
         # Specific query to retrieve table names
         sql = "SELECT * FROM information_schema.columns WHERE table_name = N'{}'".format(self.table)
@@ -309,6 +405,19 @@ class Table(Database):
     
     # Get types of columns, returns dict
     def get_types(self, as_dataframe=False, pandas_integers=False):
+        """
+        Returns dictionary of data types eg., 
+        { "column name": "VARCHAR(100)", ... }
+
+        Params
+        ------
+        as_dataframe : bool
+            Returns dataframe instead of dictionary
+
+        pandas_integers : bool
+            Returns only integer types if True. Useful for preserving nulls
+            in integer dtypes in pandas Dataframe.
+        """
         
         # Specific query to retrieve table names
         sql_to_sql = """
@@ -354,6 +463,9 @@ class Table(Database):
     
     # Update column names in db table
     def _update_table_names(self, series):
+        """
+        Generates a SQL query to change the names of table columns.
+        """
 
         # Extract current columns in table
         old_columns = self.get_names()
@@ -378,6 +490,18 @@ class Table(Database):
 
     # Standardize column names using dictionary of character replacements
     def format_table_names(self, replace_map, update=False):
+        """
+        Standardizes table names.
+
+        Params
+        -------
+        replace_map : dict
+            dictionary of characters to replace as key:value
+
+        update : bool
+            True to run update query against table
+
+        """
         
         series = self.get_names()
         
@@ -403,11 +527,20 @@ class Table(Database):
 
     # Add new columns to database
     def add_columns_from_data(self, data):
+        """
+        Adds columns from a pandas Dataframe that are not already present in 
+        the table. 
+
+        Params
+        -------
+        data : pandas Dataframe
+            Dataframe with columns to be added to table
+        """
         
         # Get names of current columns in PostgreSQL table
         current_names = self.get_names().tolist()
 
-        # Get names of updated table not in current table
+        # Get names in updated dataframe not in current table
         updated_names = data.columns.tolist()
         new_names = list(set(updated_names) - set(current_names))
 
@@ -436,6 +569,10 @@ class Table(Database):
     
     # Check whether dataframe columns match database table columns before running queries
     def _match_column_order(self, data):
+        """
+        Rearranges columns in dataframe to match table in order
+        to avoid errors when updating values.
+        """
         
         # Get columns from database as list
         db_columns = self.get_names().tolist()
@@ -463,17 +600,26 @@ class Table(Database):
         
     
     def _copy_from_dataframe(self, data, id_col, columns=None):
+        """
+        Copies rows from dataframe into a temporary table. Automatically 
+        matches the order of columns between the table and the dataframe.
+        Internal to update_values.
+        """
         
         tmp_table = "tmp_" + self.table
 
+        # Tests whether dataframe columns and table columns are same order
         match = self._match_column_order(data)
 
+        # Match columns order between table and dataframe
         if match:
-            # Get columns from database as list
+            # Get columns from table as list
             db_columns = self.get_names().tolist()
             
             # Select columns from dataframe as list
             data_columns = data.columns.tolist()
+
+            # Rearrange to match
             data = data[db_columns]
             print('Rearranged dataframe columns to match "{}".'.format(self.table))
 
@@ -509,6 +655,9 @@ class Table(Database):
                 
         
     def _update_from_temp(self, id_col, columns=None):
+        """
+        Updates table from temporary table. Internal to update_values.
+        """
         
         temp_table = "tmp_" + self.table
         columns = self.get_names().tolist() if not columns else columns
@@ -536,7 +685,13 @@ class Table(Database):
                 
     # Builds a query to update postgres from a csv file
     def update_values(self, data, id_col, types_dict, columns=None, sep=','):
+        """
+        Updates values in dataframe into table. If columns are in the
+        dataframe but not in the table, will automatically add those 
+        columns and update their types.
+        """
 
+        # Automatically updates table with new columns in dataframe
         if data.columns.tolist() != columns:
                 self.add_columns_from_data(data)
                 self.update_types(types_dict=types_dict, columns=columns)        
@@ -552,6 +707,12 @@ class Table(Database):
     
     # Updates column types in PostgreSQL database
     def update_types(self, types_dict, columns=None):
+        """
+        Updates types using types_dict, eg., 
+
+        { "column name": "VARCHAR(100)", ... }
+
+        """
         
         # Subset types based on columns input
         types_dict, columns = self.__subset_types_dict(types_dict, columns)

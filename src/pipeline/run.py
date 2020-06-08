@@ -13,7 +13,6 @@ from src.pipeline.dictionaries import types_dict, replace_map
 from src.pipeline.transform_data import create_full_address, split_lat_long
 from src.toolkits.geospatial import geocode_from_address
 from src.toolkits.postgresql import Database, Table
-from src.toolkits.eda import explore_value_counts
 
 def main(name=None, id_col=None, replace_map=replace_map, types_dict=types_dict):
 
