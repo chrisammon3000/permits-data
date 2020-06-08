@@ -42,8 +42,12 @@ check_env:
 	@if [ -z "$$CONTAINER" ]; then echo "Error: Missing environment variables. To set them first run:" \
 		&& echo "set -o allexport; source .env; set +o allexport;" && exit 1; fi
 
+## Create data directory if not present
+check_directory: 
+	@if [ ! -d "./data" ]; then mkdir -p data/{interim,processed,raw}; fi
+
 ## Start Postgres
-start_db: check_env
+start_db: check_env check_directory
 	@echo "### Starting Docker... ###"
 	@scripts/run_postgres.sh
 	@echo "### Waiting for PostgreSQL... ###"
