@@ -40,8 +40,15 @@ set -o allexport; source .env; set +o allexport;
 
 ### Running the Pipeline
 
-To start and load the database, from the root directory run:
+To run the entire pipeline start to finish:
 ```
 make data
+```
+
+To load the database and run the pipeline from Jupyter Notebook
+```
+make data \
+&& cd notebooks \
+&& jupyter notebook ## Select pipeline notebook
 ```
 

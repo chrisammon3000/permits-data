@@ -2,7 +2,6 @@ import os
 import sys
 from pathlib import Path
 sys.path[0] = str(Path(__file__).resolve().parents[2]) # Set path for modules
-import logging
 from dotenv import load_dotenv, find_dotenv
 import numpy as np
 import pandas as pd
@@ -48,21 +47,3 @@ def split_lat_long(data):
     
     else:
         return None
-
-
-if __name__ == '__main__':
-
-    # Get project root directory
-    project_dir = sys.path[0]
-
-    # find .env automagically by walking up directories until it's found, then
-    # load up the .env entries as environment variables
-    load_dotenv(find_dotenv());
-    POSTGRES_USER = os.getenv("POSTGRES_USER")
-    POSTGRES_PASSWORD = os.getenv("POSTGRES_PASSWORD")
-    POSTGRES_DB = os.getenv("POSTGRES_DB")
-    DB_PORT = os.getenv("DB_PORT")
-    DB_HOST = os.getenv("DB_HOST")
-    DATA_URL = os.getenv("DATA_URL")
-
-    #main()

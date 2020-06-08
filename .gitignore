@@ -102,5 +102,3 @@ base-requirements.txt
 /src/build_features/
 /src/models/
 /src/visualization/
-/notebooks/0.5-sql-package.ipynb
-/notebooks/
