@@ -32,7 +32,8 @@ create_env: delete_env
 	&& conda deactivate
 
 ## Validate environment
-check_env:
+test_environment:
+	$(PYTHON_INTERPRETER) test_environment.py
 	@echo "### Validating environment... ###"
 	@if [[ "$$CONDA_DEFAULT_ENV" != "$$CONDA_ENV" ]]; then \
 		echo "Error: Environment not active. To activate run:" \
@@ -51,7 +52,7 @@ fetch_data: check_directory
 	@echo "Data is ready."
 
 ## Start PostgreSQL
-start_db: check_env check_directory
+start_db: test_environment check_directory
 	@echo "### Starting Docker... ###"
 	@scripts/run_postgres.sh
 	@echo "### Waiting for PostgreSQL... ###"
@@ -110,9 +111,6 @@ clean:
 lint:
 	flake8 src
 
-## Test python environment is setup correctly
-test_environment:
-	$(PYTHON_INTERPRETER) test_environment.py
 
 #################################################################################
 # Self Documenting Commands                                                     #
