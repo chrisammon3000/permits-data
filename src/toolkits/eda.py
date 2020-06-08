@@ -1,9 +1,7 @@
 import os
 import sys
-from dotenv import load_dotenv, find_dotenv
 import numpy as np
 import pandas as pd
-import psycopg2
 
 ## Returns overview with column, dtype, # unique values, # missing values and sample value
 def get_snapshot(dataframe):

@@ -1,14 +1,16 @@
 import os
 import sys
 from pathlib import Path
-sys.path[0] = str(Path(__file__).resolve().parents[2]) # Set path for modules
 from dotenv import load_dotenv, find_dotenv
 import pandas as pd
-pd.options.mode.chained_assignment = None  # default='warn'; turn off SettingWithCopyWarning
 import psycopg2 # SQL libraries
-from geopy.geocoders import Nominatim # Import dependencies for geocoding
+from geopy.geocoders import Nominatim # Geocoding
 from geopy.geocoders import GoogleV3
 from geopy.extra.rate_limiter import RateLimiter
+
+
+sys.path[0] = str(Path(__file__).resolve().parents[2]) # Set path for modules
+pd.options.mode.chained_assignment = None  # default='warn'; turn off SettingWithCopyWarning
 
 # find .env automagically by walking up directories until it's found, then
 # load up the .env entries as environment variables
@@ -16,7 +18,7 @@ load_dotenv(find_dotenv());
 
 # Google Maps environment variables
 GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
-GOOGLE_AGENT = os.getenv("GOOGLE_AGENT") or "permits-data"
+GOOGLE_AGENT = os.getenv("GOOGLE_AGENT")
 
 # Create helper function to geocode missing latitude_longitude values
 def geocode(address, key, agent, timeout=10):
