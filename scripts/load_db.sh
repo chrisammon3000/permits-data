@@ -1,6 +1,6 @@
 #!/bin/bash
 TABLE=permits_raw
-DATA='./data/raw/permits_raw.csv'
+DATA="./data/raw/$RAW_DATA"
 CONTAINER=postgres_db
 export NROWS=501
 

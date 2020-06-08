@@ -13,6 +13,9 @@ The pipeline is built on these frameworks and platforms:
 * [Docker](https://docs.docker.com/get-docker/)
 * [GNU Make](https://www.gnu.org/software/make/)
 
+In addition to the above packages, I built a straight-forward Object-Relational Mapper (ORM) on top of psycopg2 to interface with PostgreSQL. The ORM package contains two classes, Database and Table, which contain the basic functionality
+to run the pipeline. The package module is located in `src/toolkits/postgresql.py`.
+
 ## Pipeline Overview
 The permits-data pipeline initializes a PostgreSQL database instance running inside a Docker container and loads raw construction permit data from a csv file. It then extracts, transforms and reloads the data to make it ready for analysis. 
 

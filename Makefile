@@ -14,6 +14,7 @@ PYTHON_INTERPRETER = python3
 SHELL=/bin/bash
 CONDAROOT=/Users/gregory/anaconda3
 export CONDA_ENV=permits-data-env
+export RAW_DATA=permits_raw.csv
 
 #################################################################################
 # COMMANDS                                                                      #
@@ -48,12 +49,12 @@ check_directory:
 
 ## Download data
 fetch_data: check_directory
-	@if [ ! -f "$$PWD/data/raw/permits_raw.csv" ]; then echo "Downloading data..." \
-		&& curl $$DATA_URL > $(PWD)/data/raw/permits_raw.csv; fi
+	@if [ ! -f "$$PWD/data/raw/$(RAW_DATA)" ]; then echo "Downloading data..." \
+		&& curl $$DATA_URL > $(PWD)/data/raw/$(RAW_DATA); fi
 	@echo "Data is ready."
 
 ## Start PostgreSQL
-start_db: test_environment check_directory
+start_db: test_environment fetch_data
 	@echo "### Starting Docker... ###"
 	@scripts/run_postgres.sh
 	@echo "### Waiting for PostgreSQL... ###"
