@@ -17,8 +17,12 @@ The pipeline performs the following steps in order to prepare the data for analy
 8) Updates the database with the new values
 
 ## Getting Started
+
 ### Prerequisites
-In order to run the pipeline Anaconda will need to be installed and a Google Maps Geocode API key should be present in the .env file.
+1) Install [Anaconda](https://docs.anaconda.com/anaconda/install/) package manager
+2) Acquire an [API key for Google Maps](https://developers.google.com/maps/documentation/geocoding/get-api-key)
+
+### Setting up Environment
 
 Clone the directory:
 ```
@@ -33,6 +37,8 @@ Populate the environment variables by running:
 ```
 set -o allexport; source .env; set +o allexport;
 ```
+
+### Running the Pipeline
 To start and load the database, from the root directory run:
 ```
 make data

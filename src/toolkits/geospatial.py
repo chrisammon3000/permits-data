@@ -16,7 +16,7 @@ load_dotenv(find_dotenv());
 
 # Google Maps environment variables
 GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
-GOOGLE_AGENT = os.getenv("permits-data")
+GOOGLE_AGENT = os.getenv("GOOGLE_AGENT") or "permits-data"
 
 # Create helper function to geocode missing latitude_longitude values
 def geocode(address, key, agent, timeout=10):
@@ -25,7 +25,6 @@ def geocode(address, key, agent, timeout=10):
     Uses GoogleMaps API to batch geocode address strings to lat/long coordinates. RateLimiter is to 
     avoid timeout errors. If an address cannot be geocoded it is left as NaN. Use of GoogleMaps 
     API incurs a charge at $0.005 per request.
-
     """
 
     if address:
