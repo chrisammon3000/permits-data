@@ -16,9 +16,53 @@ load_dotenv(find_dotenv());
 
 
 #### Database class ####
-
 class Database():
+
+    """
+    Provides an interface to offer basic functionality for working
+    with a PostgreSQL database including creating, listing and
+    dropping tables. Tables can be manipulated further through the Table
+    method which inherits from Database. Built on psycopg2.
+
+    Example: Creating, listing and dropping tables
+    --------
+
+    # Assumes .env file is present
+    db = Database()
     
+    # Create a new table
+    db.create_table(table_name="permits_raw", types=dict=types_dict, 
+                    id_col="pcis_permit_no")
+    
+    # List tables in database
+    db.list_tables()
+    [ 'permits_raw' ]
+
+    # Drop a table
+    db.drop_table(table_name="permits_raw")
+
+
+    Example: Accessing the connection method allows custom queries
+    --------
+
+    custom_sql = "SELECT COUNT(*) FROM table;"
+
+    # Create a connection variable
+    con = db._connect()
+    
+    cur = con.cursor()
+    cur.execute(custom_sql)
+    
+    for record in cur:
+        print(record)
+
+    # Close connection
+    cur.close()
+    con.close()
+    
+    """
+
+
     def __init__(self, user="postgres", password="postgres",
                  dbname=None, host="localhost", port=5432):
 
@@ -184,7 +228,6 @@ class Database():
         
 
 #### Table class ####
-
 class Table(Database):
     def __init__(self, name, id_col, user="postgres", password="postgres",
                  dbname=None, host="localhost", port=5432):
@@ -541,15 +584,3 @@ class Table(Database):
         self.__run_query(sql, msg='Updated types in "{}".'.format(self.table))
             
         return 
-
-
-#### Data class ####
-
-# equal to table.fetch()
-# convert functions into methods, create_full_address, geocode etc
-# def __init__(self, data):
-#     self.fetch_data(data)
-
-# # Inherit from Table
-# def fetch_data(self, data):
-#     self.data = pd.read_csv(data)
