@@ -1,11 +1,14 @@
 import os
 import sys
 from pathlib import Path
-sys.path[0] = str(Path(__file__).resolve().parents[2]) # Set path for modules
-from dotenv import load_dotenv, find_dotenv
 import numpy as np
 import pandas as pd
-pd.options.mode.chained_assignment = None  # default='warn'; turn off SettingWithCopyWarning
+
+# Set path for modules
+sys.path[0] = str(Path(__file__).resolve().parents[2]) 
+
+# default='warn'; turn off SettingWithCopyWarning
+pd.options.mode.chained_assignment = None
 
 
 # Concatenate address columns into full_address column
