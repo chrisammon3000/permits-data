@@ -57,7 +57,7 @@ docs/_build/
 target/
 
 # DotEnv configuration
-#.env
+.env
 
 # Database
 *.db
@@ -102,3 +102,4 @@ base-requirements.txt
 /src/build_features/
 /src/models/
 /src/visualization/
+.env
