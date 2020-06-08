@@ -101,5 +101,6 @@ base-requirements.txt
 /postgres/sql/*.sql
 /src/build_features/
 /src/models/
-/src/visualization/
+/src/toolkits/eda.py
+
 .env
