@@ -34,14 +34,16 @@ create_env: delete_env
 
 ## Validate environment
 test_environment:
-	@echo "### Validating environment... ###"
+	@echo "### Begin Pipeline... ###"
+	@echo "Validating environment..."
 	@$(PYTHON_INTERPRETER) test_environment.py
-	@if [[ "$$CONDA_DEFAULT_ENV" != "$$CONDA_ENV" ]]; then \
+	@if [ "$$CONDA_DEFAULT_ENV" != "$$CONDA_ENV" ]; then \
 		echo "Error: Environment not active. Create it or to activate run:" \
-		&& echo "conda activate $(CONDA_ENV)"; else echo "Conda environment ready."; fi
+		&& echo "> conda activate $(CONDA_ENV)"; else echo "Conda environment ready."; fi
 	@if [ ! -f "$$PWD/.env" ]; then echo "Error: .env file is missing."; fi
 	@if [ -z "$$CONTAINER" ]; then echo "Error: Missing environment variables. To set them first run:" \
-		&& echo "set -o allexport; source .env; set +o allexport;"; else echo "Environment variables ready."; fi
+		&& echo "> set -o allexport; source .env; set +o allexport;"; else echo "Environment variables ready."; fi
+	@if [ "$$CONDA_DEFAULT_ENV" != "$$CONDA_ENV" ] || [ ! -f "$$PWD/.env" ] || [ -z "$$CONTAINER" ]; then exit 1; fi
 
 ## Create data directory
 check_directory: 
