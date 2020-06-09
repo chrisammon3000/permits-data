@@ -13,7 +13,7 @@ The pipeline is built on these frameworks and platforms:
 * [Docker](https://docs.docker.com/get-docker/)
 * [GNU Make](https://www.gnu.org/software/make/)
 
-In addition to the above packages, I built a straight-forward Object-Relational Mapper (ORM) on top of psycopg2 to interface with PostgreSQL. The ORM package contains two classes, Database and Table, which contain the basic functionality
+In addition to the above packages, I built a simple Object-Relational Mapper (ORM) on top of psycopg2 to interface with PostgreSQL. The ORM package contains two classes, Database and Table, which contain the basic functionality
 to run the pipeline. The package module is located in `src/toolkits/postgresql.py`.
 
 ## Pipeline Overview
@@ -35,7 +35,13 @@ Everything can be run with a single command `make data` which will execute these
 1) Install [Anaconda](https://docs.anaconda.com/anaconda/install/) package manager
 2) Install [Docker](https://docs.docker.com/get-docker/)
 3) Acquire an [API key for Google Maps](https://developers.google.com/maps/documentation/geocoding/get-api-key). It may be necessary to set up a developer account.
-4) Check that the .env file is correct:
+
+### Setting up Environment
+Clone the directory:
+  ```
+  git clone <repo>
+  ```
+Check that an .env file exists with the following variables:
    ```
    ### .env
 
@@ -53,37 +59,31 @@ Everything can be run with a single command `make data` which will execute these
    DATA_DIR="${PWD}/data"
 
    # Google Maps API
-   GOOGLE_API_KEY="<your api key>"
+   GOOGLE_API_KEY="<your api key>" # From the Geocoding API
    GOOGLE_AGENT="permits-data" # or the GCP Project ID used when creating the API key
    ```
 
-### Setting up Environment
-
-Clone the directory:
-```
-git clone <repo>
-```
 To create the environment run:
-```
-make create_env
-conda activate permits-data-env
-```
+  ```
+  make create_env
+  conda activate permits-data-env
+  ```
 Populate the environment variables by running:
-```
-set -o allexport; source .env; set +o allexport;
-```
+  ```
+  set -o allexport; source .env; set +o allexport;
+  ```
 
 ### Running the Pipeline
 
-To run the entire pipeline start to finish:
-```
-make data
-```
+  To run the entire pipeline start to finish:
+  ```
+  make data
+  ``` 
 
-To load the database and run the pipeline from Jupyter Notebook
-```
-make data \
-&& cd notebooks \
-&& jupyter notebook ## Select pipeline notebook
-```
+  Or load the raw data and run the pipeline from Jupyter Notebook
+  ```
+  make load_db \
+  && cd notebooks \
+  && jupyter notebook ## Select 0.1-pipeline notebook
+  ```
 
