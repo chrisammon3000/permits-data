@@ -18,7 +18,7 @@ def create_full_address(data):
     data['suffix_direction'] = data['suffix_direction'].str[0].fillna('')
 
     # Convert zip_code to string
-    data['zip_code'] = data['zip_code'].fillna('').astype(str)
+    data['zip_code'] = data['zip_code'].fillna(0).replace(0, '').astype(object)
 
     # Combine address columns to concatenate
     address_columns = ["address_start", "street_direction", "street_name", "street_suffix", "suffix_direction",
@@ -29,6 +29,8 @@ def create_full_address(data):
 
     # Replace empty strings with NaN values
     data[address_columns] = data[address_columns].replace('', np.nan)
+
+    data['zip_code'] = data['zip_code'].astype('Int64')
     
     return data
 
