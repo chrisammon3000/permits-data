@@ -357,9 +357,13 @@ class Table(Database):
         data = pd.read_sql_query(sql=sql, con=con, coerce_float=coerce_float, parse_dates=parse_dates)
         
         # Recast integer columns to preserve original types
-        update_dict = self.get_types(pandas_integers=True)
-        update_dict = {k: v for k, v in update_dict.items() if v}
-        data = data.astype(update_dict)
+        try: 
+            update_dict = self.get_types(pandas_integers=True)
+            update_dict = {k: v for k, v in update_dict.items() if v}
+            data = data.astype(update_dict)
+        except:
+            warnings.warn('Dataframe dtypes may be incorrect.')
+            pass
         
         # Replace None with np.nan
         data.fillna(np.nan, inplace=True)
