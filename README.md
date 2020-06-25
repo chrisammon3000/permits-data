@@ -1,7 +1,24 @@
 permits-data
 ==============================
 
-Simple ETL pipeline for construction permit data in Los Angeles county, USA using bash, Python, Docker and PostgreSQL. Run `make data` to automatically download contruction permits data, load into a PostgreSQL database in Docker, transform columns and geocode missing addresses. 
+A simple ETL pipeline for construction permits data from the [Los Angeles Open Data Portal](https://data.lacity.org/) using bash, Python, Docker and PostgreSQL. Run the command `make data` to automatically download contruction permits data, load into a PostgreSQL database in Docker, transform columns and geocode missing addresses. Includes a basic [Object-Relational Mapper](https://en.wikipedia.org/wiki/Object-relational_mapping) (ORM) for PostgreSQL using `psycopg2` and a notebook that outlines the steps in the pipeline.
+
+## Data Source
+Cited from [Building and Safety Permit Information](https://data.lacity.org/A-Prosperous-City/Building-and-Safety-Permit-Information-Old/yv23-pmwf):<br>
+>*"The Department of Building and Safety issues permits for the construction, remodeling, and repair of buildings and structures in the City of Los Angeles. Permits are categorized into building permits, electrical permits, and mechanical permits"*
+
+The raw permits data available from the [Los Angeles Open Data Portal](https://data.lacity.org/) contains missing latitude and longitude coordinates for some properties. The pipeline geocodes the missing coordinates and updates a local database.
+
+## Pipeline Overview
+Data is downloaded to csv and loaded into a Docker PostgreSQL container. Columns are transformed and the database is updated. Everything can be run with a single command `make data` which will execute these steps:
+1) Start a PostgreSQL Docker container 
+2) Load the raw data from csv
+3) Standardize the column names
+4) Update the data types
+5) Concatenate address fields into a single column `full_address`
+6) Geocode missing GPS coordinates using the `full_address`
+7) Create separate columns for `latitude` and `longitude`
+8) Update the database with the new values
 
 ## Built With
 The pipeline is built on these frameworks and platforms:
@@ -13,35 +30,22 @@ The pipeline is built on these frameworks and platforms:
 * [Docker](https://docs.docker.com/get-docker/)
 * [GNU Make](https://www.gnu.org/software/make/)
 
-In addition to the above packages, I built a simple Object-Relational Mapper (ORM) on top of psycopg2 to interface with PostgreSQL. The ORM package contains two classes, Database and Table, which contain the basic functionality
-to run the pipeline. The package module is located in `src/toolkits/postgresql.py`.
-
-## Pipeline Overview
-The permits-data pipeline initializes a PostgreSQL database instance running inside a Docker container and loads raw construction permit data from a csv file. It then extracts, transforms and reloads the data to make it ready for analysis. 
-
-Everything can be run with a single command `make data` which will execute these steps:
-1) Start a PostgreSQL Docker container 
-2) Load the raw data from csv
-3) Standardize the column names
-4) Update the data types
-5) Concatenate address fields into a single column `full_address`
-6) Geocode missing GPS coordinates using the `full_address`
-7) Create separate columns for `latitude` and `longitude`
-8) Update the database with the new values
+In addition to the above packages, I built a simple Object-Relational Mapper (ORM) on top of psycopg2 to interface with PostgreSQL. The ORM package contains two classes, `Database` and `Table`, which contain the basic functionality
+to run the pipeline. The package module is located in `src/toolkits/postgresql.py` and it's use is demonstrated in the notebook `0.1-pipeline.ipynb`.
 
 ## Getting Started
 
 ### Prerequisites
-1) Install [Anaconda](https://docs.anaconda.com/anaconda/install/) package manager
-2) Install [Docker](https://docs.docker.com/get-docker/)
-3) Acquire an [API key for Google Maps](https://developers.google.com/maps/documentation/geocoding/get-api-key). It may be necessary to set up a developer account. Note that geocoding incurs a charge of $0.005 USD per request, although Google does give an intial $300 USD credit.
+1) [Anaconda](https://docs.anaconda.com/anaconda/install/)
+2) [Docker](https://docs.docker.com/get-docker/)
+3) [API key for Google Maps](https://developers.google.com/maps/documentation/geocoding/get-api-key). It may be necessary to set up a developer account. Note that geocoding incurs a charge of $0.005 USD per request, although Google does give an intial $300 USD credit.
 
 ### Setting up Environment
 Clone the directory:
   ```
   git clone <repo>
   ```
-Check that an .env file exists with the following variables:
+Check that an .env file exists with the following variables, if it does not simply copy and paste:
    ```
    ### .env
 
@@ -66,7 +70,7 @@ Check that an .env file exists with the following variables:
 To create the environment run:
   ```
   make create_env
-  conda activate permits-data-env
+  conda activate permits_pipeline_env
   ```
 Populate the environment variables by running:
   ```
@@ -96,6 +100,13 @@ It is useful to check that new columns were correctly populated by running a que
 ```
 SELECT full_address, latitude, longitude FROM permits_raw LIMIT 10;
 ```
+
+### Cleaning up
+A single command will delete the database as well as the Docker container and any cache files:
+```
+make tear_down
+```
+
 
 ## Contributors
 

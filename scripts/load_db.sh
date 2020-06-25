@@ -2,7 +2,7 @@
 TABLE=permits_raw
 DATA="./data/raw/$RAW_DATA"
 CONTAINER=postgres_db
-export NROWS=1001
+export NROWS=501
 
 echo "Copying $(expr $NROWS - 1) rows into table..."
 # Copy 1 million rows into db; For smaller dataset replace cat with head -n #rows
