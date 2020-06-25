@@ -12,13 +12,14 @@ The raw permits data available from the [Los Angeles Open Data Portal](https://d
 ## Pipeline Overview
 Data is downloaded to csv and loaded into a Docker PostgreSQL container. Columns are transformed and the database is updated. Everything can be run with a single command `make data` which will execute these steps:
 1) Start a PostgreSQL Docker container 
-2) Load the raw data from csv
-3) Standardize the column names
-4) Update the data types
-5) Concatenate address fields into a single column `full_address`
-6) Geocode missing GPS coordinates using the `full_address`
-7) Create separate columns for `latitude` and `longitude`
-8) Update the database with the new values
+2) Download raw data if not already present
+3) Load a subset (1000 rows) of the raw data from csv
+4) Standardize the column names
+5) Update the data types
+6) Concatenate address fields into a single column `full_address`
+7) Geocode missing GPS coordinates using the `full_address`
+8) Create separate columns for `latitude` and `longitude`
+9) Update the database with the new values
 
 ## Built With
 The pipeline is built on these frameworks and platforms:
