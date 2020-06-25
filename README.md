@@ -13,7 +13,7 @@ The raw permits data available from the [Los Angeles Open Data Portal](https://d
 Data is downloaded to csv and loaded into a Docker PostgreSQL container. Columns are transformed and the database is updated. Everything can be run with a single command `make data` which will execute these steps:
 1) Start a PostgreSQL Docker container 
 2) Download raw data if not already present
-3) Load a subset (1000 rows) of the raw data from csv
+3) Load a sample (1000 rows) of the raw data from csv
 4) Standardize the column names
 5) Update the data types
 6) Concatenate address fields into a single column `full_address`
