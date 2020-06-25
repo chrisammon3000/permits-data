@@ -89,7 +89,7 @@ Populate the environment variables by running:
   make data
   ``` 
 
-  Option 2: Load the raw data using GNU Make and run the rest of the pipeline from Jupyter Notebook
+  Option 2: Load the raw data using GNU Make and run the rest of the pipeline from Jupyter Notebook:
   ```
   make load_db \
   && cd notebooks \
