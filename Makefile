@@ -13,7 +13,7 @@ PROJECT_NAME = permits-data
 PYTHON_INTERPRETER = python3
 SHELL=/bin/bash
 CONDAROOT=/Users/gregory/anaconda3
-export CONDA_ENV=permits-data-env
+export CONDA_ENV=permits_pipeline_env
 export RAW_DATA=permits_raw.csv
 
 #################################################################################

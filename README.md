@@ -75,12 +75,12 @@ Populate the environment variables by running:
 
 ### Running the Pipeline
 
-  To run the entire pipeline start to finish:
+  Option 1: Run the entire pipeline start to finish using GNU Make:
   ```
   make data
   ``` 
 
-  Or load the raw data and run the pipeline from Jupyter Notebook
+  Option 2: Load the raw data using GNU Make and run the rest of the pipeline from Jupyter Notebook
   ```
   make load_db \
   && cd notebooks \
@@ -92,4 +92,11 @@ The PostgreSQL database within the Docker container can be accessed by running:
 ```
 docker exec -it postgres_db psql -U postgres -d permits
 ```
-This is useful to check that new columns were correctly populated.
+It is useful to check that new columns were correctly populated by running a query such as:
+```
+SELECT full_address, latitude, longitude FROM permits_raw LIMIT 10;
+```
+
+## Contributors
+
+**Primary (Contact) : [Gregory Lindsey](https://github.com/gclindsey)**
