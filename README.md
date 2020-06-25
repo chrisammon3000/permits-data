@@ -3,11 +3,15 @@ permits-data
 
 A simple ETL pipeline for construction permits data from the [Los Angeles Open Data Portal](https://data.lacity.org/) using bash, Python, Docker and PostgreSQL. Run the command `make data` to automatically download contruction permits data, load into a PostgreSQL database in Docker, transform columns and geocode missing addresses. Includes a basic [Object-Relational Mapper](https://en.wikipedia.org/wiki/Object-relational_mapping) (ORM) for PostgreSQL using `psycopg2` and a notebook that outlines the steps in the pipeline.
 
-## Data Source
+## Background
 Cited from [Building and Safety Permit Information](https://data.lacity.org/A-Prosperous-City/Building-and-Safety-Permit-Information-Old/yv23-pmwf):<br>
 >*"The Department of Building and Safety issues permits for the construction, remodeling, and repair of buildings and structures in the City of Los Angeles. Permits are categorized into building permits, electrical permits, and mechanical permits"*
 
 The raw permits data available from the [Los Angeles Open Data Portal](https://data.lacity.org/) contains missing latitude and longitude coordinates for some properties. The pipeline geocodes the missing coordinates and updates a local database.
+
+### Data source
+Data can be downloaded directly here:<br>
+https://data.lacity.org/api/views/yv23-pmwf/rows.csv?accessType=DOWNLOAD
 
 ## Pipeline Overview
 Data is downloaded to csv and loaded into a Docker PostgreSQL container. Columns are transformed and the database is updated. Everything can be run with a single command `make data` which will execute these steps:
