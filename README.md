@@ -1,7 +1,7 @@
 permits-data
 ==============================
 
-ETL pipeline for construction permit data in Los Angeles county, USA using bash, Python and PostgreSQL.
+Simple ETL pipeline for construction permit data in Los Angeles county, USA using bash, Python, Docker and PostgreSQL. Run `make data` to automatically download contruction permits data, load into a PostgreSQL database in Docker, transform columns and geocode missing addresses. 
 
 ## Built With
 The pipeline is built on these frameworks and platforms:
@@ -34,7 +34,7 @@ Everything can be run with a single command `make data` which will execute these
 ### Prerequisites
 1) Install [Anaconda](https://docs.anaconda.com/anaconda/install/) package manager
 2) Install [Docker](https://docs.docker.com/get-docker/)
-3) Acquire an [API key for Google Maps](https://developers.google.com/maps/documentation/geocoding/get-api-key). It may be necessary to set up a developer account.
+3) Acquire an [API key for Google Maps](https://developers.google.com/maps/documentation/geocoding/get-api-key). It may be necessary to set up a developer account. Note that geocoding incurs a charge of $0.005 USD per request, although Google does give an intial $300 USD credit.
 
 ### Setting up Environment
 Clone the directory:
@@ -87,3 +87,9 @@ Populate the environment variables by running:
   && jupyter notebook ## Select 0.1-pipeline notebook
   ```
 
+### Accessing the database
+The PostgreSQL database within the Docker container can be accessed by running:
+```
+docker exec -it postgres_db psql -U postgres -d permits
+```
+This is useful to check that new columns were correctly populated.
